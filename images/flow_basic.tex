@@ -1,0 +1,88 @@
+% Diagram of Android activity life cycle
+% Author: Pavel Seda 
+\documentclass[border=10pt]{standalone}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta, shapes, chains, arrows, shadows}
+
+% Set up a few colours
+
+
+\tikzset{%
+  >={Latex[width=2mm,length=2mm]},
+  % Specifications for style of nodes:
+	base/.style = {draw, on chain, on grid, align=center, minimum height=4ex},
+	Docs/.style = {base, fill=blue!30},
+	screen/.style = {base, fill=orange!15},
+	form/.style = {on chain, on grid, align=center, minimum height=4ex, fill=white},
+    computer/.style = {base, fill=green!30},
+    decision/.style={base, diamond, aspect=2.5, fill=red!30,text width=5em},
+	process/.style = {base, minimum width=2.5cm, fill=orange!15,
+                           font=\ttfamily},                       
+    coord/.style={coordinate, on chain, on grid, node distance=6mm and 25mm},
+	norm/.style={->, draw, black},  
+	multidoc/.style={
+		base,
+		shape=tape,
+		tape bend top=none,
+		fill=white,
+		double copy shadow,
+		fill=blue!30
+	},
+}
+\begin{document}    
+% Drawing part, node distance is 1.5 cm and every node
+% is prefilled with white background
+
+\begin{tikzpicture}[
+    >=triangle 60,              % Nice arrows; your taste may be different
+start chain=going below,    % General flow is top-to-bottom
+node distance=6mm and 50mm, % Global setup of box spacing
+every join/.style={norm},   % Default linetype for connecting boxes
+]
+%    every node/.style={fill=white, font=\sffamily}, align=center]
+  % Specification of nodes (position, etc.)
+  \node (docs)  [multidoc]  {N possibly relevant documents};
+  
+  \node (sample)  [screen, join]  {Screen random documents};
+  \node (model) [computer, join, left=of sample]  {Train model,\\ predict relevance};
+  \node (screenrel)  [screen, below of =sample]  {Screen most \\ relevant documents};
+  %\node (stopscreen) [decision, join] {Irrelevant?};
+  
+  %\node (screenr2) [screen, join]  {Screen random documents};
+  
+  %\node (recall) [decision, join] {Recall $>$ threshold?};
+  
+	%\node (sform) [form, right=of screenr2, xshift=-15mm] { Estimate $pU$ };
+  
+  %\node (rform) [form, right=of recall, xshift=-15mm] {$ 1 - \frac{pU}{pP} \frac{U}{P}$};
+  
+  \node (reldocs) [multidoc, below of=screenrel, xshift=20mm, yshift=-8mm]  {Relevant documents};
+  \node (irreldocs) [multidoc, fill=blue!5, below of=screenrel, xshift=-20mm, yshift=-8mm]  {Irrelevant documents};
+  %\node 
+  
+  
+  \draw [o->,norm] (model.south) |-  (screenrel.west);
+ 
+  
+  \node [coord, left=of screenrel, xshift=-45mm, yshift=-10mm] (c1)  {}; %\cmark{1} 
+  \node [coord, above=of model, yshift=2em] (c2)  {}; %\cmark{1} 
+  
+  %\node [coord, left=of recall, xshift=-45mm] (c3)  {}; %\cmark{1} 
+  
+ %\path (screenrel.south) to node [very near start, yshift=-1em] {$n$} (c1); 
+ 
+ 	\draw [o->,norm] (screenrel.south) |- (c1) |-  (c2) -- (model.north);
+ 	
+  %\path (recall.west) to node [very near start, yshift=1em] {$n$} (c3); 
+ 
+ %\draw [o->,norm] (recall.west) -- (c3) |-  (c2) -- (model.north);
+ 
+ %\draw [o->,norm] (screenrel.south) -- (reldocs);
+ %\draw [o->,norm] (screenrel.south) -- (irreldocs);
+ 	
+ 	
+ 	
+ 	
+  
+  \end{tikzpicture}
+\end{document}
