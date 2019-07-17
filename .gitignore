@@ -9,3 +9,6 @@
 *.snm
 *.synctex.gz
 *.toc
+#*
+*#*
+*~*

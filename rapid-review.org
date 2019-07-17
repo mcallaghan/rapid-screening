@@ -1,0 +1,14 @@
+RAPID REVIEW -*- mode: org -*-
+
+* Manuscript
+
+
+** TODO select journal
+- Research Synthesis Methods (IF - 5.043)
+- Systematic Reviews
+
+** TODO Writing
+
+* Analysis
+** TODO get test data
+
