@@ -10,5 +10,13 @@ RAPID REVIEW -*- mode: org -*-
 ** TODO Writing
 
 * Analysis
-** TODO get test data
+** NEXT Disprove existing approaches
+   :LOGBOOK:  
+   CLOCK: [2019-07-17 Wed 10:21]--[2019-07-17 Wed 17:22] =>  7:01
+   :END:      
+** TODO Setup test architecture
+** NEXT get test data
+   :LOGBOOK:  
+   CLOCK: [2019-07-18 Thu 10:23]
+   :END:      
 
