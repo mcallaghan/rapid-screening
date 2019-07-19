@@ -24,7 +24,8 @@ document_index.head()
 
 #############################
 ## Load the cohen database of SRs
-https://dmice.ohsu.edu/cohenaa/systematic-drug-class-review-data.html
+#https://dmice.ohsu.edu/cohenaa/systematic-drug-class-review-data.html
+
 cohen_db = pd.read_csv(
     '../data/epc-ir.clean.tsv',
     sep='\t',header=None,
