@@ -10,7 +10,8 @@ with open('data/epc-ir.clean.tsv','r') as f:
     for l in f:
         pmids.append(l.split('\t')[2])
 
-pmids = set(pmids)
+pmids = list(set(pmids))
+pmids.sort()
 
 for i, group in enumerate(grouper(200, pmids)):
     group = [x for x in group if x is not None]
