@@ -13,10 +13,10 @@ document_index = None
 for fpath in os.listdir('../data/'):
     if "cohen_all" in fpath:
         ndf = rr.parse_pmxml(f'../data/{fpath}')
-    if document_index is None:
-        document_index = ndf
-    else:
-        document_index = pd.concat([document_index,ndf])
+        if document_index is None:
+            document_index = ndf
+        else:
+            document_index = pd.concat([document_index,ndf])
         
 document_index = document_index.drop_duplicates()
 print(document_index.shape)
