@@ -40,7 +40,7 @@ cohen_db.head()
 models = [
     SVC(kernel='linear',C=5,probability=True)
 ]
-iterations = 500
+iterations = 5
 
 results = []
 rs_results = []
@@ -51,14 +51,18 @@ for name, group in cohen_db.groupby('review'):
         document_index,
     )
     df = df.dropna().reset_index(drop=True)
-    for s in [100, 200, 500]:
+    for s in [200, 500]:
         ss = rr.ScreenScenario(
             df, models, s, 50, name
         )
         for i in range(iterations):
             print(i)
-            rs_results.append(ss.screen(i, True))
-            results.append(ss.screen(i))
+            r = ss.screen(i, True) 
+            if r is not None:
+                rs_results.append(r)
+            r = ss.screen(i)
+            if r is not None:
+                results.append(r)
             paths.append({
                 "dataset": name,
                 "work_path": ss.work_track,
