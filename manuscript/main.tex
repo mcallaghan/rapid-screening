@@ -72,6 +72,7 @@
 
 \usepackage{todonotes}
 \usepackage{graphicx}
+\usepackage{url}
 %\def\includegraphic{}
 %\def\includegraphics{}
 
@@ -274,7 +275,7 @@
 	
 	\subsection*{Existing Stopping Criteria for Active Learning}
 	
-	We start by explaining the sampling and heuristic based stopping criteria before showing with toy data how the criteria falls short. 
+	We start by explaining the sampling and heuristic based stopping criteria before showing with toy data how the criteria fall short. 
 	Then we introduce our own suggested stopping criteria, and show its benefits with toy data, before testing all criteria on real world datasets.
 	
 	\subsubsection*{Sampling Based Stopping Criteria}
@@ -334,6 +335,12 @@ This also means that where machine learning has performed well (as in the top fi
 	\caption{Similar low proportions of relevant documents in unseen documents with different consequences for recall. The top bar shows a random distribution of relevant documents (green) and irrelevant documents (red) at a given proportion of relevance. The bottom bar  shows distributions of relevant and irrelevant documents in hypothetical sets of seen (right) and unseen (left - transparent) documents.}
 	\label{unseen-proportions}
 \end{figure}
+
+\subsubsection*{Other stopping criteria}
+
+\cite{Wallace2010a} Develop a ``simple, operational stopping criterion'': stopping after half the documents have been screened. Although the criterion worked in their experiment, it is unclear how this could be generalised, and its development depended on knowledge of the true relevance values. 
+\cite{Jonnalagadda2013} note that ``the reviewer can elect to end the process of classifying documents at any point, recognizing that stopping before reviewing all documents involves a trade-off of lower recall for reduced workload'', although clearly the reviewer lacks information about probable recall.
+\cite{Yu2019} adopt a more complicated stopping criterion \todo{How does it actually work??} which allows the user to target a specific level of recall. However, reviewers are not given the opportunity to specify a confidence level, and for two of the four datasets in which they tested their criteria, the median achieved recall at a stopping criteria targeting 95\% recall was below 95\%.
 
 
 
@@ -406,11 +413,19 @@ This also means that where machine learning has performed well (as in the top fi
 	
 	\subsection*{Evaluation}
 	
-	We evaluate each of the three criteria discussed on real world test data. With each method, we run 100 runs and record the recall error and actual work saved each time. We operationalise the heuristic stopping criteria with 10, 20, and 50 irrelevant records in a row. For simplicity, we use a basic SVM model [REFS], with 1-2 word n-grams in the document abstracts used as input data. We start with random samples of [100, 200, and 500] documents.
+	We evaluate each of the three criteria discussed on real world test data. With each method, we run 100 runs and record 
+	\begin{itemize}
+		\item \textbf{Actual Recall}: The recall when the stopping criteria is met
+		\item \textbf{WS-SC}: Work saved when the stopping criteria is met \footnote{we do not use work saved over sampling, is it is not axiomatic that seeing 95\% of a random sample would achieve 95\% recall}
+		\item \textbf{Additional Burden}: The proportion of the literature that need to be screened in order to \textit{be confident} that 95\% recall has been achieved, after 95\% of documents have actually been identified.
+	\end{itemize}
+	We operationalise the heuristic stopping criteria with 10, 20, and 50 irrelevant records in a row. For simplicity, we use a basic SVM model [REFS], with 1-2 word n-grams in the document abstracts used as input data. We start with random samples of [100, 200, and 500] documents.
 	
 	
 	
-	\subsubsection*{Evaluation Data}
+	%\subsubsection*{Evaluation Data}
+	
+	We use the collection of systematic reviews used to develop machine learning applications for document screening by Aaron Cohen and co-authors in 2006 \cite{Cohen2006}. This study was the first to apply machine-learning to classifying the relevance of documents in systematic reviews, and the underlying data was made public. It contains 15 sets of documents from comprehensive literature reviews of classes of drugs used in treating specific conditions. For each document, the original authors' decision to exclude or include at abstract and full-text level is given. We try to predict the relevance at abstract level.
 	
 	\section*{Results}
 	
@@ -430,7 +445,7 @@ This also means that where machine learning has performed well (as in the top fi
 	Max Callaghan is supported by a PhD scholarship from the Heinrich Böll Foundation
 		
 	\bibliography{../mendeley}
-	\bibliographystyle{bmc_article}
+	\bibliographystyle{vancouver}
 	
 \end{backmatter}
 \end{document}

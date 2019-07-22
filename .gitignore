@@ -1,3 +1,4 @@
+*.bst
 *.pyc
 *__pycache__*
 data/*

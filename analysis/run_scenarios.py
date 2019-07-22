@@ -40,7 +40,7 @@ cohen_db.head()
 models = [
     SVC(kernel='linear',C=5,probability=True)
 ]
-iterations = 5
+iterations = 10
 
 results = []
 rs_results = []
@@ -66,10 +66,14 @@ for name, group in cohen_db.groupby('review'):
             paths.append({
                 "dataset": name,
                 "work_path": ss.work_track,
-                "recall_path": ss.recall_track
+                "recall_path": ss.recall_track,
+                "estimated_recall_path": ss.estimated_recall_path
             })
 
+paths = [x for x in paths if x is not None]
+path_df = pd.DataFrame.from_dict(paths)
 results_df = pd.DataFrame.from_dict(results)
 rs_results_df = pd.DataFrame.from_dict(rs_results)
 rs_results_df.to_csv('../results/rs_results.csv', index=False)
 results_df.to_csv('../results/results.csv', index=False)
+paths_df.to_csv('../results/paths.csv', index=False)

@@ -16,6 +16,7 @@ import numpy as np
 import time, sys
 from IPython.display import clear_output
 import math
+import copy
 
 def lemmatize(token, tag):
     tag = {
@@ -113,6 +114,8 @@ class ScreenScenario:
         self.wss95_pf = None
         self.wss95_ih = None
         self.wss95_rs = None
+        for ih in self.irrelevant_heuristic:
+            setattr(self, f'wss95_ih_{ih}', None)
 
     def screen(self, i, rs=False):
         s = self.s
@@ -144,14 +147,17 @@ class ScreenScenario:
                     learning=False
                     break
                 x = self.X[index]
+                y = self.df.loc[index,'relevant']
                 y = self.df.query('seen==1')['relevant']
-                if len(set(y))<2:
+                last_iteration = self.ratings[-self.iteration_size:]
+                last_iteration_relevance = np.sum(last_iteration)/len(last_iteration)
+                if len(set(y))<2: # if we have a single class - just keep sampling
                     y_pred = [random.random() for x in unseen_index]
                 else:
                     clf.fit(x,y)
                     y_pred = clf.predict_proba(self.X[unseen_index])[:,1]
                     if rs:
-                        if max(y_pred) < 0.5:
+                        if max(y_pred) < 0.05 and last_iteration_relevance < 0.05:
                             r = self.sample_threshold()
                             return r
                 # These are the next documents
@@ -161,32 +167,35 @@ class ScreenScenario:
                     self.ratings.append(self.df.loc[i,'relevant'])
                     self.seen_docs = self.df.query('seen==1').shape[0]
                     self.r_seen = self.df.query('seen==1 & relevant==1').shape[0]
-                    self.recall_track.append(self.r_seen / self.r_docs)
+                    
+                    self.recall_track.append(self.get_recall())
                     self.work_track.append(self.seen_docs / self.N)
-                    last_ratings = self.ratings[-self.irrelevant_heuristic:]
-                    self.recall = self.r_seen / self.r_docs
-                    if len(last_ratings) == self.irrelevant_heuristic and np.sum(last_ratings)==0:
-                        if self.wss95_ih is None:
-                            self.wss95_ih = 1 - self.seen_docs / self.N
-                            self.recall_ih = self.r_seen / self.r_docs
+                    for ih in self.irrelevant_heuristic:
+                        last_ratings = self.ratings[-ih:]
+                        if len(last_ratings) == ih and np.sum(last_ratings)==0:
+                            if getattr(self, f'wss95_ih_{ih}') is None:
+                                setattr(self, f'wss95_ih_{ih}', 1 - self.seen_docs / self.N)
+                                setattr(self, f'recall_ih_{ih}', self.get_recall())
                     if self.r_seen > self.r_predicted_upperbound and self.wss95_bir_ci is None:
                         self.wss95_bir_ci = 1 - self.seen_docs / self.N
-                        self.recall_bir_ci = self.r_seen / self.r_docs
-                    if self.r_seen > self.r_docs*0.95 and self.wss95_pf is None:
+                        self.recall_bir_ci = self.get_recall()
+                    if self.get_recall() > 0.95 and self.wss95_pf is None:
                         self.wss95_pf = 1 - self.seen_docs / self.N
-                        self.recall_pf = self.r_seen / self.r_docs
+                        self.recall_pf = self.get_recall()
                     if self.r_seen > self.r_predicted and self.wss95_bir is None:
                         self.wss95_bir = 1 - self.seen_docs / self.N
-                        self.recall_bir = self.r_seen / self.r_docs
+                        self.recall_bir = self.get_recall()
             if self.wss95_bir is None:
                 self.wss95_bir = 0
                 self.recall_bir = 1
             if self.wss95_bir_ci is None:
                 self.wss95_bir_ci = 0
                 self.recall_bir_ci = 1
-            if self.wss95_ih is None:
-                self.wss95_ih = 0
-                self.recall_ih = 1
+            
+            for ih in self.irrelevant_heuristic:
+                if getattr(self, f'wss95_ih_{ih}') is None:
+                    setattr(self, f'wss95_ih_{ih}', 0)
+                    setattr(self, f'recall_ih_{ih}', 1)
 
         result = {
             "dataset": self.dataset,
@@ -197,17 +206,26 @@ class ScreenScenario:
             "wss95_pf": self.wss95_pf,
             "recall_pf": self.recall,
             "wss95_bir": self.wss95_bir,
-            "recall_bir": self.recall_bir,
-            "wss95_ih": self.wss95_ih,
-            "recall_ih": self.recall_ih
+            "recall_bir": self.recall_bir
         }
+        for ih in self.irrelevant_heuristic:
+            result[f'wss95_ih_{ih}'] = getattr(self, f'wss95_ih_{ih}')
+            result[f'recall_ih_{ih}'] = getattr(self, f'recall_ih_{ih}')
         return result
 
+    def get_recall(self):
+        return self.r_seen / self.r_docs
+    
     def sample_threshold(self):
         unseen_index = list(self.df.query('seen==0').index)
         random.shuffle(unseen_index)
+        
+        self.seen_docs = self.df.query('seen==1').shape[0]
+        self.r_seen = self.df.query('seen==1 & relevant==1').shape[0]
+        
         self.random_start_work = self.seen_docs / self.N
-        self.random_start_recall = self.r_seen / self.r_docs
+        self.random_start_recall = self.get_recall()
+        self.estimated_recall_path = []
         X = 0
         for j, i in enumerate(unseen_index):
             self.df.loc[i,'seen'] = 1
@@ -215,7 +233,8 @@ class ScreenScenario:
             X += self.df.loc[i, 'relevant']
             self.seen_docs = self.df.query('seen==1').shape[0]
             self.r_seen = self.df.query('seen==1 & relevant==1').shape[0]
-            self.recall_track.append(self.r_seen / self.r_docs)
+            
+            self.recall_track.append(self.get_recall())
             self.work_track.append(self.seen_docs / self.N)            
 
             p_tilde, ci = ci_ac(X, j+1, 0.95)
@@ -223,22 +242,25 @@ class ScreenScenario:
             self.estimated_r_docs = math.floor((p_tilde+ci)*self.n_remaining) + self.r_seen
             self.estimated_p_ub = self.estimated_r_docs / self.N
             self.estimated_missed = round((p_tilde+ci)*self.n_remaining)
+            
             self.estimated_recall_min = (self.estimated_r_docs - self.estimated_missed) / self.estimated_r_docs
 
+            self.estimated_recall_path.append(self.estimated_recall_min)
             #print(self.estimated_missed, self.estimated_r_docs)
             #self.estimated_recall_min = 1 - (p_tilde+ci)/self.estimated_p_ub * self.n_remaining / self.N
-            self.recall = self.r_seen / self.r_docs
-            if self.recall > 0.95 and self.wss95_pf is None:
-                self.recall_pf = self.recall
+            if self.get_recall() > 0.95 and self.wss95_pf is None:
+                self.recall_pf = self.get_recall()
                 self.wss95_pf = 1 - self.seen_docs / self.N
             
             if self.estimated_recall_min > 0.95 and self.wss95_rs is None:
                 self.wss95_rs = 1 - self.seen_docs / self.N
-                self.recall_rs = self.r_seen / self.r_docs
+                self.recall_rs = self.get_recall()
 
 
         result = {
             "dataset": self.dataset,
+            "N": self.N,
+            "p": self.p,
             "s": self.s,
             "iteration": self.iteration,
             "wss95_rs": self.wss95_rs,
