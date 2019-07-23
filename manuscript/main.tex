@@ -340,7 +340,8 @@ This also means that where machine learning has performed well (as in the top fi
 
 \cite{Wallace2010a} Develop a ``simple, operational stopping criterion'': stopping after half the documents have been screened. Although the criterion worked in their experiment, it is unclear how this could be generalised, and its development depended on knowledge of the true relevance values. 
 \cite{Jonnalagadda2013} note that ``the reviewer can elect to end the process of classifying documents at any point, recognizing that stopping before reviewing all documents involves a trade-off of lower recall for reduced workload'', although clearly the reviewer lacks information about probable recall.
-\cite{Yu2019} adopt a more complicated stopping criterion \todo{How does it actually work??} which allows the user to target a specific level of recall. However, reviewers are not given the opportunity to specify a confidence level, and for two of the four datasets in which they tested their criteria, the median achieved recall at a stopping criteria targeting 95\% recall was below 95\%.
+\cite{Yu2019} adopt a more complicated stopping criterion \todo{How does it actually work??} which allows the user to target a specific level of recall. However, reviewers are not given the opportunity to specify a confidence level, and for two of the four datasets in which they tested their criteria, the median achieved recall at a stopping criteria targeting 95\% recall was below 95\%. \cite{DiNunzio2018} also present an innovative stopping criteria, but it does not take into account uncertainty, and produces results \textit{near} a target recall threshold. 
+These last examples are promising developments, but [are not ready for live reviews because hard to understand/communicate?? do not give uncertainty about reaching a threshold]
 
 
 
@@ -432,6 +433,14 @@ This also means that where machine learning has performed well (as in the top fi
 	\section*{Discussion}
 	
 	\section*{Conclusion}
+	
+	We argue that the stopping criteria proposed here has several important advantages.
+	
+	\begin{itemize}
+		\item The accuracy of results is independent of modelling decisions. When a model fits badly, you have to work more, but you don't miss results without knowing it.
+		\item A minimum threshold with uncertainty is understandable and communicable in a live review. It is based solely on arithmetic and simple statistics.
+		\item A minimum threshold better takes into account the undesirability of missed recall.
+	\end{itemize}
 	
 \begin{backmatter}
 	

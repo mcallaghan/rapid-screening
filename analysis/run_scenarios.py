@@ -53,7 +53,7 @@ for name, group in cohen_db.groupby('review'):
     df = df.dropna().reset_index(drop=True)
     for s in [200, 500]:
         ss = rr.ScreenScenario(
-            df, models, s, 50, name
+            df, models, s, [50, 100, 200], name
         )
         for i in range(iterations):
             print(i)
