@@ -17,6 +17,8 @@ import time, sys
 from IPython.display import clear_output
 import math
 import copy
+from sklearn.ensemble import IsolationForest
+from sklearn.neural_network import MLPClassifier
 
 def lemmatize(token, tag):
     tag = {
@@ -79,7 +81,8 @@ class ScreenScenario:
         self.s = sample
         self.irrelevant_heuristic = irrelevant_heuristic # how many irrelevant do we have to see in a row in order to stop
         self.results = []
-        self.iteration_size = 50
+        self.iteration_size = 20
+        self.iterations = 0
         self.recall_track = []
         self.work_track = []
         self.ratings = []
@@ -96,13 +99,17 @@ class ScreenScenario:
         self.unseen_p = None
         
         self.X = TfidfVectorizer(
-            ngram_range=(1,2),
-            min_df=5, max_df=0.6, strip_accents='unicode', 
+            ngram_range=(1,1),
+            min_df=2, max_df=0.9, strip_accents='unicode', 
             max_features=10000,
             use_idf=1,
             smooth_idf=1, sublinear_tf=1,
-            stop_words="english",tokenizer=tokenize
-        ).fit_transform(df['ab'])
+            #stop_words="english",tokenizer=tokenize
+        ).fit_transform(df['mesh'])
+
+        clf = IsolationForest()
+        clf.fit(self.X)
+        self.df['outlying'] = clf.predict(self.X)
 
     def reset(self):
         self.df['seen'] = 0
@@ -128,6 +135,8 @@ class ScreenScenario:
             print(f"skipping sample {s}, as it is more than 50% of the data")
             return
         sids = random.sample(list(self.df.index), s)
+        if rs:
+            sids = self.df.sort_values('outlying').index[:s]
         self.df.loc[sids,'seen'] = 1
         self.seen_docs = s
         self.r_seen = self.df.query('seen==1 & relevant==1').shape[0]
@@ -141,8 +150,9 @@ class ScreenScenario:
         for clf in self.models:
             learning = True
             while learning:
+                self.iterations +=1
                 clear_output(wait=True)
-                print(f"Dataset: {self.dataset}, iteration {self.iteration}.  {self.seen_docs} out of {self.N} documents seen")
+                print(f"Dataset: {self.dataset}, iteration {self.iteration}.  {self.seen_docs} out of {self.N} documents seen ({self.seen_docs/self.N:.0%}) - recall: {self.get_recall():.0%}")
                 index = self.df.query('seen==1').index
                 unseen_index = self.df.query('seen==0').index
                 if len(unseen_index) == 0:
@@ -151,17 +161,33 @@ class ScreenScenario:
                 x = self.X[index]
                 y = self.df.loc[index,'relevant']
                 y = self.df.query('seen==1')['relevant']
-                last_iteration = self.ratings[-self.iteration_size:]
+                last_iteration = self.ratings[-self.iteration_size*4:]
                 last_iteration_relevance = np.sum(last_iteration)/len(last_iteration)
                 if len(set(y))<2: # if we have a single class - just keep sampling
                     y_pred = [random.random() for x in unseen_index]
                 else:
                     clf.fit(x,y)
                     y_pred = clf.predict_proba(self.X[unseen_index])[:,1]
-                    if rs:
-                        if max(y_pred) < 0.05 and last_iteration_relevance < 0.05:
-                            r = self.sample_threshold()
-                            return r
+                    if rs and self.iterations > 2:
+                        # n = round((self.N - self.seen_docs)*0.1)
+                        # X = round(last_iteration_relevance*n)
+                        # print(last_iteration_relevance)
+                        # print(X)
+                        # print(n)
+                        # p_tilde, ci = ci_ac(X, n, 0.95)
+                        # estimated_r_docs = math.floor((p_tilde+ci)*n) + n
+                        # estimated_p_ub = estimated_r_docs / self.N
+                        # estimated_missed = round((p_tilde+ci)*n)
+
+                        # estimated_recall_min = (estimated_r_docs - estimated_missed) / estimated_r_docs
+
+                        # if estimated_recall_min > 0.95:
+                        #     r = self.sample_threshold()
+                        #     return r
+                        
+                        if max(y_pred) < 0.02 and last_iteration_relevance < 0.02:
+                           r = self.sample_threshold()
+                           return r
                 # These are the next documents
                 next_index = unseen_index[(-y_pred).argsort()[:self.iteration_size]]
                 for i in next_index:
@@ -206,7 +232,7 @@ class ScreenScenario:
             "wss95_bir_ci": self.wss95_bir_ci,
             "recall_bir_ci": self.recall_bir_ci,
             "wss95_pf": self.wss95_pf,
-            "recall_pf": self.recall,
+            "recall_pf": self.get_recall(),
             "wss95_bir": self.wss95_bir,
             "recall_bir": self.recall_bir
         }
@@ -229,6 +255,9 @@ class ScreenScenario:
         self.random_start_recall = self.get_recall()
         self.estimated_recall_path = []
         X = 0
+
+        print(f"Dataset: {self.dataset}, iteration {self.iteration}.  {self.seen_docs} out of {self.N} documents seen ({self.seen_docs/self.N:.0%}) - recall: {self.get_recall():.0%} - switching to random sampling")
+        
         for j, i in enumerate(unseen_index):
             self.df.loc[i,'seen'] = 1
             self.ratings.append(self.df.loc[i,'relevant'])
@@ -283,7 +312,15 @@ def get_field(a, f):
         return list(a.iter(f))[0].text
     except:
         return None
-    
+
+def get_mesh_headings(a):
+    ms = []
+    for m in a.iter('MeshHeading'):
+        d = m.find('DescriptorName')
+        if d is not None:
+            ms.append(f"MESHHEAD{d.attrib['UI']}")
+    return " "+ " ".join(ms)
+                      
 def parse_pmxml(path):
     tree = ET.parse(path)
     root = tree.getroot()
@@ -292,7 +329,8 @@ def parse_pmxml(path):
         docs.append({
             "ab": get_field(a, 'AbstractText'),
             "PMID": get_field(a, 'PMID'),
-            "ti": get_field(a, 'ArticleTitle')
+            "ti": get_field(a, 'ArticleTitle'),
+            "mesh": get_mesh_headings(a)
         })
     df = pd.DataFrame.from_dict(docs)
     df['PMID'] = pd.to_numeric(df['PMID'])
