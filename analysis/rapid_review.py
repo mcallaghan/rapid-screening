@@ -83,6 +83,7 @@ class ScreenScenario:
         self.recall_track = []
         self.work_track = []
         self.ratings = []
+        self.estimated_recall_path = []
         self.recall = None
         self.recall_pf = None
         self.recall_bir = None
@@ -109,6 +110,7 @@ class ScreenScenario:
         self.ratings = []
         self.recall_track = []
         self.work_track = []
+        self.estimated_recall_path = []
         self.wss95_bir = None
         self.wss95_bir_ci = None
         self.wss95_pf = None
