@@ -269,6 +269,8 @@
 	This study proposes a system for estimating the recall based on random sampling of remaining documents. 
 	We draw on the literature on binomial distributions \cite{Brown2001}, to illustrate how AL users can predefine a threshold in terms of uncertainty and recall, and use this to transparently save work with machine learning, while making a statement like ``There is a <5\% chance that we achieve a recall under 95\%''.
 	
+	The information retrieval literature discusses similar stopping criteria for ranking algorithms like BM25 and variants \cite{DiNunzio2018, Yu2019}. However, the estimators they use to determine the recall rely on the specific ranking functions and depend on their search input. Therefore, the quality of the estimation depends on the adequacy of the model. Our approach, on the contrary, is model-free. 
+	
 	We evaluate this stopping criteria on real-world systematic review datasets on which active learning systems have previously been tested.
 	
 	\section*{Methods}
