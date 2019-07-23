@@ -40,7 +40,7 @@ cohen_db.head()
 models = [
     SVC(kernel='linear',C=5,probability=True)
 ]
-iterations = 10
+iterations = 20
 
 results = []
 rs_results = []
@@ -50,28 +50,30 @@ for name, group in cohen_db.groupby('review'):
         group,
         document_index,
     )
+    if df.shape[0] > 1000000:
+        continue
     df = df.dropna().reset_index(drop=True)
     for s in [200, 500]:
         ss = rr.ScreenScenario(
-            df, models, s, 50, name
+            df, models, s, [50, 100, 200], name
         )
         for i in range(iterations):
             print(i)
             r = ss.screen(i, True) 
             if r is not None:
                 rs_results.append(r)
-            r = ss.screen(i)
-            if r is not None:
-                results.append(r)
             paths.append({
                 "dataset": name,
                 "work_path": ss.work_track,
                 "recall_path": ss.recall_track,
                 "estimated_recall_path": ss.estimated_recall_path
             })
+            r = ss.screen(i)
+            if r is not None:
+                results.append(r)
 
 paths = [x for x in paths if x is not None]
-path_df = pd.DataFrame.from_dict(paths)
+paths_df = pd.DataFrame.from_dict(paths)
 results_df = pd.DataFrame.from_dict(results)
 rs_results_df = pd.DataFrame.from_dict(rs_results)
 rs_results_df.to_csv('../results/rs_results.csv', index=False)
