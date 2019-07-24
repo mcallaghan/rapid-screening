@@ -147,7 +147,7 @@ class ScreenScenario:
         self.r_predicted_upperbound = round(self.bir_upperbound*self.N)
 
         outliers = False
-            if outliers:
+        if outliers:
             self.df['seen'] = 0
             sids = self.df.sort_values('outlying').index[:s]
             self.df.loc[sids,'seen'] = 1
