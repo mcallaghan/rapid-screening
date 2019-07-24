@@ -86,6 +86,8 @@ class ScreenScenario:
         self.recall_track = []
         self.work_track = []
         self.ratings = []
+        self.random_recall_track = []
+        self.random_work_track = []
         self.estimated_recall_path = []
         self.recall = None
         self.recall_pf = None
@@ -94,8 +96,6 @@ class ScreenScenario:
         self.wss95_bir = None # Work saved at 95\% recall
         self.wss95_bir_ci = None
         self.wss95_pf = None # Work saved at 95\% recall with perfect knowledge
-        self.wss95_ih = None
-        self.recall_ih = None
         self.unseen_p = None
         
         self.X = TfidfVectorizer(
@@ -117,6 +117,8 @@ class ScreenScenario:
         self.ratings = []
         self.recall_track = []
         self.work_track = []
+        self.random_recall_track = []
+        self.random_work_track = []
         self.estimated_recall_path = []
         self.wss95_bir = None
         self.wss95_bir_ci = None
@@ -135,8 +137,6 @@ class ScreenScenario:
             print(f"skipping sample {s}, as it is more than 50% of the data")
             return
         sids = random.sample(list(self.df.index), s)
-        if rs:
-            sids = self.df.sort_values('outlying').index[:s]
         self.df.loc[sids,'seen'] = 1
         self.seen_docs = s
         self.r_seen = self.df.query('seen==1 & relevant==1').shape[0]
@@ -145,6 +145,14 @@ class ScreenScenario:
         bir, ci = ci_ac(self.r_seen, self.seen_docs, 0.95)
         self.bir_upperbound = bir + ci
         self.r_predicted_upperbound = round(self.bir_upperbound*self.N)
+
+        outliers = False
+            if outliers:
+            self.df['seen'] = 0
+            sids = self.df.sort_values('outlying').index[:s]
+            self.df.loc[sids,'seen'] = 1
+            self.seen_docs = s
+            self.r_seen = self.df.query('seen==1 & relevant==1').shape[0]
 
         # Do some machine learning
         for clf in self.models:
@@ -168,26 +176,12 @@ class ScreenScenario:
                 else:
                     clf.fit(x,y)
                     y_pred = clf.predict_proba(self.X[unseen_index])[:,1]
-                    if rs and self.iterations > 2:
-                        # n = round((self.N - self.seen_docs)*0.1)
-                        # X = round(last_iteration_relevance*n)
-                        # print(last_iteration_relevance)
-                        # print(X)
-                        # print(n)
-                        # p_tilde, ci = ci_ac(X, n, 0.95)
-                        # estimated_r_docs = math.floor((p_tilde+ci)*n) + n
-                        # estimated_p_ub = estimated_r_docs / self.N
-                        # estimated_missed = round((p_tilde+ci)*n)
-
-                        # estimated_recall_min = (estimated_r_docs - estimated_missed) / estimated_r_docs
-
-                        # if estimated_recall_min > 0.95:
-                        #     r = self.sample_threshold()
-                        #     return r
-                        
-                        if max(y_pred) < 0.02 and last_iteration_relevance < 0.02:
-                           r = self.sample_threshold()
-                           return r
+                    if rs and self.iterations > 2 and self.random_work_track == []:                        
+                        if max(y_pred) < 0.02 and last_iteration_relevance < self.bir*0.5:
+                            self.last_iteration_relevance=last_iteration_relevance
+                            tdf = copy.deepcopy(self.df)
+                            r = self.sample_threshold()
+                            self.df = tdf
                 # These are the next documents
                 next_index = unseen_index[(-y_pred).argsort()[:self.iteration_size]]
                 for i in next_index:
@@ -225,20 +219,9 @@ class ScreenScenario:
                     setattr(self, f'wss95_ih_{ih}', 0)
                     setattr(self, f'recall_ih_{ih}', 1)
 
-        result = {
-            "dataset": self.dataset,
-            "s": self.s,
-            "iteration": self.iteration,
-            "wss95_bir_ci": self.wss95_bir_ci,
-            "recall_bir_ci": self.recall_bir_ci,
-            "wss95_pf": self.wss95_pf,
-            "recall_pf": self.get_recall(),
-            "wss95_bir": self.wss95_bir,
-            "recall_bir": self.recall_bir
-        }
-        for ih in self.irrelevant_heuristic:
-            result[f'wss95_ih_{ih}'] = getattr(self, f'wss95_ih_{ih}')
-            result[f'recall_ih_{ih}'] = getattr(self, f'recall_ih_{ih}')
+        ignore_fields = ["df", "X", "unseen_p"]
+                    
+        result = {k: v for k, v in self.__dict__.items() if k not in ignore_fields}
         return result
 
     def get_recall(self):
@@ -265,8 +248,8 @@ class ScreenScenario:
             self.seen_docs = self.df.query('seen==1').shape[0]
             self.r_seen = self.df.query('seen==1 & relevant==1').shape[0]
             
-            self.recall_track.append(self.get_recall())
-            self.work_track.append(self.seen_docs / self.N)            
+            self.random_recall_track.append(self.get_recall())
+            self.random_work_track.append(self.seen_docs / self.N)            
 
             p_tilde, ci = ci_ac(X, j+1, 0.95)
             self.n_remaining = self.N - self.seen_docs
@@ -287,21 +270,7 @@ class ScreenScenario:
                 self.wss95_rs = 1 - self.seen_docs / self.N
                 self.recall_rs = self.get_recall()
 
-
-        result = {
-            "dataset": self.dataset,
-            "N": self.N,
-            "p": self.p,
-            "s": self.s,
-            "iteration": self.iteration,
-            "wss95_rs": self.wss95_rs,
-            "recall_rs": self.recall_rs,
-            "wss95_pf": self.wss95_pf,
-            "recall_pf": self.recall_pf,
-            "random_start_work": self.random_start_work,
-            "random_start_recall": self.random_start_recall
-        }
-        return result 
+        return  
             
     def __str__(self):
         return f"a screening scenario with {self.N} documents"

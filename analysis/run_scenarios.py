@@ -5,6 +5,11 @@ import os
 import matplotlib.pyplot as plt
 import importlib
 from sklearn.svm import SVC, OneClassSVM
+import argparse
+
+parser = argparse.ArgumentParser(description="run ML systematic review scenarios")
+parser.add_argument('iterations', type=int)
+args = parser.parse_args()
 
 ##########################################
 ## Pull the document metadata from the xml files from the Pubmed API
@@ -40,7 +45,7 @@ cohen_db.head()
 models = [
     SVC(kernel='linear',C=5,probability=True)
 ]
-iterations = 20
+iterations = args.iterations
 
 results = []
 rs_results = []
@@ -59,23 +64,9 @@ for name, group in cohen_db.groupby('review'):
         )
         for i in range(iterations):
             print(i)
-            r = ss.screen(i, True) 
-            if r is not None:
-                rs_results.append(r)
-            paths.append({
-                "dataset": name,
-                "work_path": ss.work_track,
-                "recall_path": ss.recall_track,
-                "estimated_recall_path": ss.estimated_recall_path
-            })
-            r = ss.screen(i)
+            r = ss.screen(i, True)
             if r is not None:
                 results.append(r)
 
-paths = [x for x in paths if x is not None]
-paths_df = pd.DataFrame.from_dict(paths)
 results_df = pd.DataFrame.from_dict(results)
-rs_results_df = pd.DataFrame.from_dict(rs_results)
-rs_results_df.to_csv('../results/rs_results.csv', index=False)
 results_df.to_csv('../results/results.csv', index=False)
-paths_df.to_csv('../results/paths.csv', index=False)
