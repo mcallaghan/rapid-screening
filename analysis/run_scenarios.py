@@ -43,7 +43,7 @@ cohen_db = cohen_db[["review","PMID","relevant"]]
 cohen_db.head()
 
 models = [
-    SVC(kernel='linear',C=5,probability=True)
+    SVC(kernel='linear',class_weight='balanced',probability=True)
 ]
 iterations = args.iterations
 
@@ -58,6 +58,7 @@ for name, group in cohen_db.groupby('review'):
     if df.shape[0] > 1000000:
         continue
     df = df.dropna().reset_index(drop=True)
+    df['x'] = df['mesh']
     for s in [200, 500]:
         ss = rr.ScreenScenario(
             df, models, s, [50, 100, 200], name

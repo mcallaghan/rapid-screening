@@ -3,24 +3,4 @@ RAPID REVIEW -*- mode: org -*-
 * Manuscript
 
 
-** TODO select journal
-- Research Synthesis Methods (IF - 5.043)
-- Systematic Reviews
-
-** TODO Writing
-
 * Analysis
-** NEXT Disprove existing approaches
-   :LOGBOOK:  
-   CLOCK: [2019-07-17 Wed 10:21]--[2019-07-17 Wed 17:22] =>  7:01
-   :END:    
-** NEXT Setup test architecture
-   :LOGBOOK:  
-   CLOCK: [2019-07-18 Thu 10:32]--[2019-07-18 Thu 13:57] =>  3:25
-   :END:      
-** NEXT get test data
-   :LOGBOOK:  
-   CLOCK: [2019-07-18 Thu 13:57]--[2019-07-18 Thu 17:36] =>  3:39
-   CLOCK: [2019-07-18 Thu 10:23]--[2019-07-18 Thu 10:32] =>  0:09
-   :END:      
-

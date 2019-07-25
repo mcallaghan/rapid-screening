@@ -105,7 +105,7 @@ class ScreenScenario:
             use_idf=1,
             smooth_idf=1, sublinear_tf=1,
             #stop_words="english",tokenizer=tokenize
-        ).fit_transform(df['mesh'])
+        ).fit_transform(df['x'])
 
         clf = IsolationForest()
         clf.fit(self.X)
@@ -160,7 +160,7 @@ class ScreenScenario:
             while learning:
                 self.iterations +=1
                 clear_output(wait=True)
-                print(f"Dataset: {self.dataset}, iteration {self.iteration}.  {self.seen_docs} out of {self.N} documents seen ({self.seen_docs/self.N:.0%}) - recall: {self.get_recall():.0%}")
+                print(f"Dataset: {self.dataset}, iteration {self.iteration}.  {self.seen_docs} out of {self.N} documents seen ({self.seen_docs/self.N:.0%}) - recall: {self.get_recall():.2%}")
                 index = self.df.query('seen==1').index
                 unseen_index = self.df.query('seen==0').index
                 if len(unseen_index) == 0:
@@ -169,21 +169,27 @@ class ScreenScenario:
                 x = self.X[index]
                 y = self.df.loc[index,'relevant']
                 y = self.df.query('seen==1')['relevant']
-                last_iteration = self.ratings[-self.iteration_size*4:]
+                n_last = self.iteration_size*4
+                if n_last > 0.05*self.N:
+                    n_last = int(round(0.05*self.N))
+                last_iteration = self.ratings[-n_last:]
                 last_iteration_relevance = np.sum(last_iteration)/len(last_iteration)
                 if len(set(y))<2: # if we have a single class - just keep sampling
-                    y_pred = [random.random() for x in unseen_index]
+                    y_pred = np.array([random.random() for x in unseen_index])
                 else:
-                    clf.fit(x,y)
-                    y_pred = clf.predict_proba(self.X[unseen_index])[:,1]
-                    if rs and self.iterations > 2 and self.random_work_track == []:                        
-                        if max(y_pred) < 0.02 and last_iteration_relevance < self.bir*0.5:
-                            self.last_iteration_relevance=last_iteration_relevance
-                            tdf = copy.deepcopy(self.df)
-                            r = self.sample_threshold()
-                            self.df = tdf
-                # These are the next documents
-                next_index = unseen_index[(-y_pred).argsort()[:self.iteration_size]]
+                    if self.get_recall() < 1 and self.random_work_track == []:
+                        clf.fit(x,y)
+                        y_pred = clf.predict_proba(self.X[unseen_index])[:,1]
+                        if rs and self.iterations > 2 and self.random_work_track == []:                        
+                            if max(y_pred) < 0.02 and last_iteration_relevance <= self.bir*0.5:
+                                self.last_iteration_relevance=last_iteration_relevance
+                                tdf = copy.deepcopy(self.df)
+                                r = self.sample_threshold()
+                                self.df = tdf
+                        # These are the next documents
+                        next_index = unseen_index[(-y_pred).argsort()[:self.iteration_size]]
+                    else:
+                        next_index = unseen_index
                 for i in next_index:
                     self.df.loc[i,'seen'] = 1
                     self.ratings.append(self.df.loc[i,'relevant'])
@@ -278,7 +284,13 @@ class ScreenScenario:
 
 def get_field(a, f):
     try:
-        return list(a.iter(f))[0].text
+        f = list(a.iter(f))[0]
+        if f and f.text is None:
+            try:
+                return list(f.iter('style'))[0].text
+            except:
+                pass
+        return f.text
     except:
         return None
 
@@ -304,4 +316,16 @@ def parse_pmxml(path):
     df = pd.DataFrame.from_dict(docs)
     df['PMID'] = pd.to_numeric(df['PMID'])
     return df
-    
+
+def parse_pb_xml(path,):
+    tree = ET.parse(path)
+    root = tree.getroot()
+    docs = []
+    for a in root.iter('record'):
+        docs.append({
+            "ab": get_field(a, 'abstract'),
+            "rec-number": get_field(a, 'rec-number'),
+            "ti": get_field(a, 'title')
+        })
+    df = pd.DataFrame.from_dict(docs)
+    return df
