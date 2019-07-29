@@ -50,8 +50,6 @@ models = [
 
 for name, group in df.groupby('review'):
     group = group.dropna().reset_index(drop=True)
-    if group.shape[0] < 2000:
-        continue
     for s in [200, 500]:
         ss = rr.ScreenScenario(
             group, models, s, [50, 100, 200], name
