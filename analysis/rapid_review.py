@@ -178,17 +178,16 @@ class ScreenScenario:
                     y_pred = np.array([random.random() for x in unseen_index])
                 else:
                     if self.get_recall() < 1:
-                        if self.random_work_track == []:
-                            clf.fit(x,y)
-                            y_pred = clf.predict_proba(self.X[unseen_index])[:,1]
-                            if rs and self.iterations > 2 and self.random_work_track == []:                        
-                                if max(y_pred) < 0.02 and last_iteration_relevance <= self.bir*0.5:
-                                    self.last_iteration_relevance=last_iteration_relevance
-                                    tdf = copy.deepcopy(self.df)
-                                    r = self.sample_threshold()
-                                    self.df = tdf
-                            # These are the next documents
-                            next_index = unseen_index[(-y_pred).argsort()[:self.iteration_size]]
+                        clf.fit(x,y)
+                        y_pred = clf.predict_proba(self.X[unseen_index])[:,1]
+                        if rs and self.iterations > 2 and self.random_work_track == []:                        
+                            if max(y_pred) < 0.02 and last_iteration_relevance <= self.bir*0.5:
+                                self.last_iteration_relevance=last_iteration_relevance
+                                tdf = copy.deepcopy(self.df)
+                                r = self.sample_threshold()
+                                self.df = tdf
+                        # These are the next documents
+                        next_index = unseen_index[(-y_pred).argsort()[:self.iteration_size]]
                     else:
                         next_index = unseen_index
                 for i in next_index:
