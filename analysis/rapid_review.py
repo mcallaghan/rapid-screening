@@ -125,6 +125,7 @@ class ScreenScenario:
         self.wss95_pf = None
         self.wss95_ih = None
         self.wss95_rs = None
+        self.wss95_nrs = None
         for ih in self.irrelevant_heuristic:
             setattr(self, f'wss95_ih_{ih}', None)
 
@@ -176,6 +177,7 @@ class ScreenScenario:
                 last_iteration_relevance = np.sum(last_iteration)/len(last_iteration)
                 if len(set(y))<2: # if we have a single class - just keep sampling
                     y_pred = np.array([random.random() for x in unseen_index])
+                    next_index = unseen_index[(-y_pred).argsort()[:self.iteration_size]]
                 else:
                     if self.get_recall() < 1:
                         clf.fit(x,y)
@@ -213,6 +215,27 @@ class ScreenScenario:
                     if self.r_seen > self.r_predicted and self.wss95_bir is None:
                         self.wss95_bir = 1 - self.seen_docs / self.N
                         self.recall_bir = self.get_recall()
+                    X = 0
+                    max_min_recall = 0
+                    for n, j in enumerate(self.ratings[::-1]):
+                        X+=j
+                        p_tilde, ci = ci_ac(X, n+1, 0.95)
+                        n_remaining = self.N - self.seen_docs
+                        estimated_r_docs = math.floor((p_tilde+ci)*n_remaining) + self.r_seen
+                        estimated_p_ub = estimated_r_docs / self.N
+                        estimated_missed = round((p_tilde+ci)*n_remaining)
+                        estimated_recall_min = (estimated_r_docs - estimated_missed) / estimated_r_docs
+                        if estimated_recall_min > max_min_recall:
+                            max_min_recall = estimated_recall_min
+                        if n > 200 and estimated_recall_min < 0.7:
+                            break
+                    if max_min_recall > 0.95 and self.wss95_nrs is None:
+                        self.wss95_nrs = 1 - self.seen_docs / self.N
+                        self.recall_nrs = self.get_recall()
+
+            if self.wss95_nrs is None:
+                self.wss95_nrs = 0
+                self.recall_nrs = 1
             if self.wss95_bir is None:
                 self.wss95_bir = 0
                 self.recall_bir = 1
@@ -249,7 +272,7 @@ class ScreenScenario:
         
         for j, i in enumerate(unseen_index):
             self.df.loc[i,'seen'] = 1
-            self.ratings.append(self.df.loc[i,'relevant'])
+            #self.ratings.append(self.df.loc[i,'relevant'])
             X += self.df.loc[i, 'relevant']
             self.seen_docs = self.df.query('seen==1').shape[0]
             self.r_seen = self.df.query('seen==1 & relevant==1').shape[0]
