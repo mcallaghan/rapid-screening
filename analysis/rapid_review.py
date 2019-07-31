@@ -230,9 +230,9 @@ class ScreenScenario:
                                 max_min_recall = estimated_recall_min
                             if n > 200 and estimated_recall_min < 0.7:
                                 break
-                    if max_min_recall > 0.95 and self.wss95_nrs is None:
-                        self.wss95_nrs = 1 - self.seen_docs / self.N
-                        self.recall_nrs = self.get_recall()
+                        if max_min_recall > 0.95 and self.wss95_nrs is None:
+                            self.wss95_nrs = 1 - self.seen_docs / self.N
+                            self.recall_nrs = self.get_recall()
 
             if self.wss95_nrs is None:
                 self.wss95_nrs = 0
