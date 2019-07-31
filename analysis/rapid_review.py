@@ -217,18 +217,19 @@ class ScreenScenario:
                         self.recall_bir = self.get_recall()
                     X = 0
                     max_min_recall = 0
-                    for n, j in enumerate(self.ratings[::-1]):
-                        X+=j
-                        p_tilde, ci = ci_ac(X, n+1, 0.95)
-                        n_remaining = self.N - self.seen_docs
-                        estimated_r_docs = math.floor((p_tilde+ci)*n_remaining) + self.r_seen
-                        estimated_p_ub = estimated_r_docs / self.N
-                        estimated_missed = round((p_tilde+ci)*n_remaining)
-                        estimated_recall_min = (estimated_r_docs - estimated_missed) / estimated_r_docs
-                        if estimated_recall_min > max_min_recall:
-                            max_min_recall = estimated_recall_min
-                        if n > 200 and estimated_recall_min < 0.7:
-                            break
+                    if self.wss95_nrs is None:
+                        for n, j in enumerate(self.ratings[::-1]):
+                            X+=j
+                            p_tilde, ci = ci_ac(X, n+1, 0.95)
+                            n_remaining = self.N - self.seen_docs
+                            estimated_r_docs = math.floor((p_tilde+ci)*n_remaining) + self.r_seen
+                            estimated_p_ub = estimated_r_docs / self.N
+                            estimated_missed = round((p_tilde+ci)*n_remaining)
+                            estimated_recall_min = (estimated_r_docs - estimated_missed) / estimated_r_docs
+                            if estimated_recall_min > max_min_recall:
+                                max_min_recall = estimated_recall_min
+                            if n > 200 and estimated_recall_min < 0.7:
+                                break
                     if max_min_recall > 0.95 and self.wss95_nrs is None:
                         self.wss95_nrs = 1 - self.seen_docs / self.N
                         self.recall_nrs = self.get_recall()
