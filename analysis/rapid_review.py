@@ -120,12 +120,14 @@ class ScreenScenario:
         self.random_recall_track = []
         self.random_work_track = []
         self.estimated_recall_path = []
+        self.estimated_p_path = []
         self.wss95_bir = None
         self.wss95_bir_ci = None
         self.wss95_pf = None
         self.wss95_ih = None
         self.wss95_rs = None
         self.wss95_nrs = None
+        self.max_prob_recall = 0
         for ih in self.irrelevant_heuristic:
             setattr(self, f'wss95_ih_{ih}', None)
 
@@ -161,7 +163,7 @@ class ScreenScenario:
             while learning:
                 self.iterations +=1
                 clear_output(wait=True)
-                print(f"Dataset: {self.dataset}, iteration {self.iteration}.  {self.seen_docs} out of {self.N} documents seen ({self.seen_docs/self.N:.0%}) - recall: {self.get_recall():.2%}")
+                print(f"Dataset: {self.dataset}, iteration {self.iteration}.  {self.seen_docs} out of {self.N} documents seen ({self.seen_docs/self.N:.0%}) - recall: {self.get_recall():.2%}, probable recall: {self.max_prob_recall:.2%}")
                 index = self.df.query('seen==1').index
                 unseen_index = self.df.query('seen==0').index
                 if len(unseen_index) == 0:
@@ -179,19 +181,17 @@ class ScreenScenario:
                     y_pred = np.array([random.random() for x in unseen_index])
                     next_index = unseen_index[(-y_pred).argsort()[:self.iteration_size]]
                 else:
-                    if self.get_recall() < 1:
-                        clf.fit(x,y)
-                        y_pred = clf.predict_proba(self.X[unseen_index])[:,1]
-                        if rs and self.iterations > 2 and self.random_work_track == []:                        
-                            if max(y_pred) < 0.02 and last_iteration_relevance <= self.bir*0.5:
-                                self.last_iteration_relevance=last_iteration_relevance
-                                tdf = copy.deepcopy(self.df)
-                                r = self.sample_threshold()
-                                self.df = tdf
-                        # These are the next documents
-                        next_index = unseen_index[(-y_pred).argsort()[:self.iteration_size]]
-                    else:
-                        next_index = unseen_index
+                    clf.fit(x,y)
+                    y_pred = clf.predict_proba(self.X[unseen_index])[:,1]
+                    if rs and self.iterations > 2 and self.random_work_track == []:
+                        if (max(y_pred) < 0.2 and self.max_prob_recall > 0.95) or self.seen_docs/self.N > 0.9:
+                            self.last_iteration_relevance=last_iteration_relevance
+                            tdf = copy.deepcopy(self.df)
+                            r = self.sample_threshold()
+                            self.df = tdf
+                    # These are the next documents
+                    next_index = unseen_index[(-y_pred).argsort()[:self.iteration_size]]
+
                 for i in next_index:
                     self.df.loc[i,'seen'] = 1
                     self.ratings.append(self.df.loc[i,'relevant'])
@@ -217,18 +217,27 @@ class ScreenScenario:
                         self.recall_bir = self.get_recall()
                     X = 0
                     max_min_recall = 0
+                    self.max_prob_recall = 0
                     if self.wss95_nrs is None:
                         for n, j in enumerate(self.ratings[::-1]):
                             X+=j
+                            if n < 20:
+                                continue
                             p_tilde, ci = ci_ac(X, n+1, 0.95)
-                            n_remaining = self.N - self.seen_docs
-                            estimated_r_docs = math.floor((p_tilde+ci)*n_remaining) + self.r_seen
-                            estimated_p_ub = estimated_r_docs / self.N
-                            estimated_missed = round((p_tilde+ci)*n_remaining)
-                            estimated_recall_min = (estimated_r_docs - estimated_missed) / estimated_r_docs
+                            estimated_r_docs = (p_tilde+ci)*(self.N-self.seen_docs) + self.r_seen
+                            estimated_recall_min = self.r_seen / estimated_r_docs
                             if estimated_recall_min > max_min_recall:
                                 max_min_recall = estimated_recall_min
-                            if n > 200 and estimated_recall_min < 0.7:
+                            p_tilde, ci = ci_ac(X, n+1, 0.33)
+                            prob_r_docs = (p_tilde+ci)*(self.N-self.seen_docs) + self.r_seen
+                            prob_recall_min = self.r_seen / prob_r_docs
+                            if prob_recall_min > self.max_prob_recall:
+                                self.max_prob_recall = prob_recall_min                            
+                            if n > 100 and estimated_recall_min < 0.5:
+                                break
+                            if n > 500 and estimated_recall_min < 0.8:
+                                break
+                            if n > 1000 and estimated_recall_min < 0.9:
                                 break
                         if max_min_recall > 0.95 and self.wss95_nrs is None:
                             self.wss95_nrs = 1 - self.seen_docs / self.N
@@ -283,12 +292,11 @@ class ScreenScenario:
 
             p_tilde, ci = ci_ac(X, j+1, 0.95)
             self.n_remaining = self.N - self.seen_docs
-            self.estimated_r_docs = math.floor((p_tilde+ci)*self.n_remaining) + self.r_seen
-            self.estimated_p_ub = self.estimated_r_docs / self.N
-            self.estimated_missed = round((p_tilde+ci)*self.n_remaining)
-            
-            self.estimated_recall_min = (self.estimated_r_docs - self.estimated_missed) / self.estimated_r_docs
+            self.estimated_r_docs = (p_tilde+ci)*self.n_remaining + self.r_seen
+            self.estimated_p_ub = self.estimated_r_docs / self.N            
+            self.estimated_recall_min = self.r_seen / self.estimated_r_docs
 
+            self.estimated_p_path.append(p_tilde+ci)
             self.estimated_recall_path.append(self.estimated_recall_min)
             #print(self.estimated_missed, self.estimated_r_docs)
             #self.estimated_recall_min = 1 - (p_tilde+ci)/self.estimated_p_ub * self.n_remaining / self.N

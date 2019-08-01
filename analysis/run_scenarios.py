@@ -34,10 +34,10 @@ document_index.head()
 cohen_db = pd.read_csv(
     '../data/epc-ir.clean.tsv',
     sep='\t',header=None,
-    names=["review","EID","PMID","relevant","fulltext_relevant"]
+    names=["review","EID","PMID","ab_relevant","fulltext_relevant"]
 )
 
-cohen_db['relevant'] = np.where(cohen_db['relevant']=="I",1,0)
+cohen_db['relevant'] = np.where(cohen_db['fulltext_relevant']=="I",1,0)
 cohen_db = cohen_db[["review","PMID","relevant"]]
 
 cohen_db.head()
@@ -57,8 +57,9 @@ for name, group in cohen_db.groupby('review'):
     )
     if df.shape[0] > 1000000:
         continue
-    df = df.dropna().reset_index(drop=True)
     df['x'] = df['mesh']
+    df = df[df['x'].str.contains('\w')]
+    df = df.dropna().reset_index(drop=True)
     for s in [200, 500]:
         ss = rr.ScreenScenario(
             df, models, s, [50, 100, 200], name
