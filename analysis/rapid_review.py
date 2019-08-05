@@ -19,6 +19,7 @@ import math
 import copy
 from sklearn.ensemble import IsolationForest
 from sklearn.neural_network import MLPClassifier
+from scipy.stats import hypergeom
 
 def lemmatize(token, tag):
     tag = {
@@ -121,17 +122,19 @@ class ScreenScenario:
         self.random_work_track = []
         self.estimated_recall_path = []
         self.estimated_p_path = []
+        self.hyper_hypo_path = []
         self.wss95_bir = None
         self.wss95_bir_ci = None
         self.wss95_pf = None
         self.wss95_ih = None
         self.wss95_rs = None
         self.wss95_nrs = None
+        self.wss95_hyper = None
         self.max_prob_recall = 0
         for ih in self.irrelevant_heuristic:
             setattr(self, f'wss95_ih_{ih}', None)
 
-    def screen(self, i, rs=False):
+    def screen(self, i, rs=False, nrs=True):
         s = self.s
         self.iteration = i
         self.reset()
@@ -188,6 +191,7 @@ class ScreenScenario:
                             self.last_iteration_relevance=last_iteration_relevance
                             tdf = copy.deepcopy(self.df)
                             r = self.sample_threshold()
+                            break
                             self.df = tdf
                     # These are the next documents
                     next_index = unseen_index[(-y_pred).argsort()[:self.iteration_size]]
@@ -218,7 +222,7 @@ class ScreenScenario:
                     X = 0
                     max_min_recall = 0
                     self.max_prob_recall = 0
-                    if self.wss95_nrs is None:
+                    if self.wss95_nrs is None and nrs is True:
                         for n, j in enumerate(self.ratings[::-1]):
                             X+=j
                             if n < 20:
@@ -269,13 +273,19 @@ class ScreenScenario:
     def sample_threshold(self):
         unseen_index = list(self.df.query('seen==0').index)
         random.shuffle(unseen_index)
+        unseen_index = random.sample(unseen_index, len(unseen_index))
         
         self.seen_docs = self.df.query('seen==1').shape[0]
         self.r_seen = self.df.query('seen==1 & relevant==1').shape[0]
         
         self.random_start_work = self.seen_docs / self.N
+        self.n_remaining_pre_sample = self.N - self.seen_docs
+        self.r_seen_pre_sample = self.r_seen
         self.random_start_recall = self.get_recall()
         self.estimated_recall_path = []
+        self.hyper_linterval_path = []
+        self.hyper_uinterval_path = []
+        self.X_sample_path = []
         X = 0
 
         print(f"Dataset: {self.dataset}, iteration {self.iteration}.  {self.seen_docs} out of {self.N} documents seen ({self.seen_docs/self.N:.0%}) - recall: {self.get_recall():.0%} - switching to random sampling")
@@ -284,6 +294,8 @@ class ScreenScenario:
             self.df.loc[i,'seen'] = 1
             #self.ratings.append(self.df.loc[i,'relevant'])
             X += self.df.loc[i, 'relevant']
+            self.X_sample = X
+            self.n_sample = j+1
             self.seen_docs = self.df.query('seen==1').shape[0]
             self.r_seen = self.df.query('seen==1 & relevant==1').shape[0]
             
@@ -298,8 +310,27 @@ class ScreenScenario:
 
             self.estimated_p_path.append(p_tilde+ci)
             self.estimated_recall_path.append(self.estimated_recall_min)
+
+            self.hypothetical_95 = math.ceil(self.r_seen / 0.95 + 0.01) - self.r_seen + X
+            self.hyper_prob_pmf = hypergeom.pmf(X, j+1+self.n_remaining, self.hypothetical_95, j+1)
+            self.hyper_prob = hypergeom.cdf(X, j+1+self.n_remaining, self.hypothetical_95, j+1)
+            self.hyper_interval = hypergeom.interval(0.95, j+1+self.n_remaining, self.hypothetical_95, j+1)
+
+            self.hyper_uinterval_path.append(self.hyper_interval[1])
+            self.hyper_linterval_path.append(self.hyper_interval[0])
+            self.X_sample_path.append(self.X_sample)
+            
+            #self.hyper_prob_diff =  hypergeom.pmf(X, j+1+self.n_remaining, self.hypothetical_95+1, j+1)
+            #self.hyper_hypo_path.append(self.hyper_prob)
             #print(self.estimated_missed, self.estimated_r_docs)
             #self.estimated_recall_min = 1 - (p_tilde+ci)/self.estimated_p_ub * self.n_remaining / self.N
+            #if self.hyper_prob < 0.05 and self.wss95_hyper is None:# and self.hyper_prob_diff < self.hyper_prob:
+ 
+
+            if X < self.hyper_interval[0] and self.wss95_hyper is None:
+                self.recall_hyper = self.get_recall()
+                self.wss95_hyper = 1 - self.seen_docs / self.N
+            
             if self.get_recall() > 0.95 and self.wss95_pf is None:
                 self.recall_pf = self.get_recall()
                 self.wss95_pf = 1 - self.seen_docs / self.N
@@ -307,6 +338,8 @@ class ScreenScenario:
             if self.estimated_recall_min > 0.95 and self.wss95_rs is None:
                 self.wss95_rs = 1 - self.seen_docs / self.N
                 self.recall_rs = self.get_recall()
+                
+                
 
         return  
             
