@@ -37,7 +37,7 @@ cohen_db = pd.read_csv(
     names=["review","EID","PMID","ab_relevant","fulltext_relevant"]
 )
 
-cohen_db['relevant'] = np.where(cohen_db['fulltext_relevant']=="I",1,0)
+cohen_db['relevant'] = np.where(cohen_db['ab_relevant']=="I",1,0)
 cohen_db = cohen_db[["review","PMID","relevant"]]
 
 cohen_db.head()
