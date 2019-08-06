@@ -123,6 +123,8 @@ class ScreenScenario:
         self.estimated_recall_path = []
         self.estimated_p_path = []
         self.hyper_hypo_path = []
+        self.prob_recall_path = []
+        self.max_min_recall_path= []
         self.wss95_bir = None
         self.wss95_bir_ci = None
         self.wss95_pf = None
@@ -191,7 +193,7 @@ class ScreenScenario:
                             self.last_iteration_relevance=last_iteration_relevance
                             tdf = copy.deepcopy(self.df)
                             r = self.sample_threshold()
-                            break
+                            
                             self.df = tdf
                     # These are the next documents
                     next_index = unseen_index[(-y_pred).argsort()[:self.iteration_size]]
@@ -243,10 +245,13 @@ class ScreenScenario:
                                 break
                             if n > 1000 and estimated_recall_min < 0.9:
                                 break
+                        
                         if max_min_recall > 0.95 and self.wss95_nrs is None:
                             self.wss95_nrs = 1 - self.seen_docs / self.N
                             self.recall_nrs = self.get_recall()
-
+                        self.prob_recall_path.append(self.max_prob_recall)
+                        self.max_min_recall_path.append(max_min_recall)
+                    
             if self.wss95_nrs is None:
                 self.wss95_nrs = 0
                 self.recall_nrs = 1
