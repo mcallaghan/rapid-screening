@@ -182,14 +182,28 @@ class ScreenScenario:
                     n_last = int(round(0.05*self.N))
                 last_iteration = self.ratings[-n_last:]
                 last_iteration_relevance = np.sum(last_iteration)/len(last_iteration)
+                n_last = 386
+                if self.N*0.1 > n_last:
+                    n_last = round(self.N*0.1)
+                last_n_relevant = np.sum(self.ratings[-n_last:])
+                if len(self.ratings) < n_last:
+                    last_n_relevant = 1
                 if len(set(y))<2: # if we have a single class - just keep sampling
                     y_pred = np.array([random.random() for x in unseen_index])
                     next_index = unseen_index[(-y_pred).argsort()[:self.iteration_size]]
+                elif self.get_recall()==1 and self.random_work_track != []:
+                    next_index = unseen_index
+                elif clf is None:
+                    if self.random_work_track == []:
+                        tdf = copy.deepcopy(self.df)
+                        r = self.sample_threshold()
+                        self.df = tdf
+                    next_index = unseen_index[:self.iteration_size]
                 else:
                     clf.fit(x,y)
                     y_pred = clf.predict_proba(self.X[unseen_index])[:,1]
                     if rs and self.iterations > 2 and self.random_work_track == []:
-                        if (max(y_pred) < 0.2 and self.max_prob_recall > 0.95) or self.seen_docs/self.N > 0.9:
+                        if (max(y_pred) < 0.2 and (self.max_prob_recall > 0.95 or last_n_relevant==0)) or self.seen_docs/self.N > 0.9:
                             self.last_iteration_relevance=last_iteration_relevance
                             tdf = copy.deepcopy(self.df)
                             r = self.sample_threshold()
