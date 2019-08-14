@@ -17,7 +17,7 @@ bad_abstract = '<div style="font-variant: small-caps; font-size: .9em;">First Pa
 
 
 dfs = []
-cols = ["Abstract", "label"]
+cols = ["Document Title","Abstract", "label"]
 for d in datasets:
     df = pd.read_csv(f'../data/fastread/{d}.csv', encoding="ISO-8859-1")[cols]
     df.loc[df['label']=="no", "relevant"] = 0
