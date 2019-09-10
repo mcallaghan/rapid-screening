@@ -181,9 +181,10 @@
 			\begin{abstract} % abstract
 				%\parttitle{First part title} %if any
 				Active learning for systematic review screening promises to reduce the human effort required to identify relevant documents for a systematic review. 
-				Machines and humans  work together, with the human providing training data, and the machine optimising the documents a human screens. 
-				However, current approaches lack robust stopping criteria, meaning that such systems are hard to implement in live reviews. 
+				Machines and humans  work together, with the human providing training data, and the machine optimising the documents a human screens, so that they can identify all relevant documents after viewing only a fraction of the total documents. 
+				However, current approaches lack robust stopping criteria, so that reviewers do not know when they have seen all or a certain proportion of relevant documents. This means that such systems are hard to implement in live reviews. 
 				This paper introduces a workflow for working with robust and flexible statistical stopping criteria, that offer real work reductions on the basis of a given confidence level of reaching a given recall.
+				The stopping criteria is shown on test datasets to achieve a reliable level of recall, while still providing consistent work reductions, while other methods proposed are shown to provide inconsistent recall and work reductions across datasets.
 				
 			\end{abstract}
 			
@@ -246,30 +247,32 @@
 	%% Introduction
 	\section*{Background}
 	
-	Machine learning for evidence synthesis is a growing field which promises to reduce the human effort required to produce systematic reviews and other forms of evidence synthesis.
-	A major strand of the literature works on screening,  
-	where several papers have developed or evaluated active learning. 
-	Active learning is an iterative process where documents screened by humans are used to train a machine learning model to predict the relevance of unseen papers.
-	The most relevant studies are rated by a human, which generates more labels to feed back to the machine. 
-	By prioritising those studies most likely to be relevant, a human reviewer most often identifies all relevant studies - or above a given threshold proportion of relevant studies - before having seen all the documents in the corpus. 
-	The documents not yet seen by the human when they reach the given recall threshold have been represented as the work saved.
+	Machine learning for evidence synthesis is a growing field, where machine learning enabled interventions are introduced at various points in the workflow, in order to reduce the human effort required to produce systematic reviews and other forms of evidence synthesis.
+	A major strand of the literature works on screening - the identification of relevant documents in a set of documents whose relevance is uncertain \cite{OMara-Eves2015}. 
+	For this task, several papers have developed or evaluated active learning. 
 	
-	In live review settings, however, the recall - or proportion of relevant studies screened - remains an unknown until all documents have been screened. 
-	In order for work to really be saved, reviewers have to stop screening while uncertain about the recall. 
-	The lack of appropriate stopping criteria has been identified as a research gap \cite{bannach-brown2019}, and existing approaches have fallen into the following categories
+	Active learning is an iterative process where documents screened by humans are used to train a machine learning model to predict the relevance of unseen papers \cite{Settles2009}.
+	The most relevant studies are passed back to the human and rated, generating more labels to feed back to the machine. 
+	By prioritising those studies most likely to be relevant, a human reviewer most often identifies all relevant studies - or a given proportion of relevant studies (recall) - before having seen all the documents in the corpus. 
+	The proportion of documents not yet seen by the human when they reach the given recall threshold are referred to as the work saved.
+	
+	In live review settings, however, the recall remains unknown until all documents have been screened. 
+	In order for work to really be saved, reviewers have to stop screening while uncertain about the recall. This is particularly problematic in systematic reviews because low recall increases the risk of publication bias %\cite{Lefebrve in Cochrane}
+	The lack of appropriate stopping criteria has therefore been identified as a research gap \cite{bannach-brown2019}, although some approaches have been suggested. These fall into the following categories
 	\begin{itemize}
 		\item \textbf{Sampling criteria:} Reviewers estimate the number of relevant documents by taking a random sample at the start of the process. They stop when this number, or a given proportion of it, has been reached \cite{Shemilt2014}
 		\item \textbf{Heuristics:} Reviewers stop when a given number of irrelevant articles are seen in a row \cite{Przybya2018}. 
 		\item \textbf{Pragmatic criteria:} Reviewers stop when they run out of time \cite{miwa2014}. 
 	\end{itemize}
 	
-	We show in this paper how first two criteria are inadequate.
-	This lack of adequate criteria challenges users of AL systems in live reviews, as authors are uncertain when to stop, and have no reliable way of reporting when they stopped and what that may say about the recall they reached. 
+	We show in this paper how the first two criteria are inadequate.
+	We argue that the inadequacy lies in the unreliability - particularly across different domains, or datasets with different properties \todo{ref on cross-domain reliability} - both of the work saved and the recall achieved. Not achieving the desired level of recall is a particular challenge for systematic review screening. In systematic reviews, the larger the proportion of the relevant literature is not considered, the greater the risk of publication bias \todo{ref cochrane handbook}. 
+	Without the reliable or reportable achievement of a desired level of recall, AL systems in live reviews remain challenging.
 	
 	This study proposes a system for estimating the recall based on random sampling of remaining documents. 
 	We draw on the literature on binomial distributions \cite{Brown2001}, to illustrate how AL users can predefine a threshold in terms of uncertainty and recall, and use this to transparently save work with machine learning, while making a statement like ``There is a <5\% chance that we achieve a recall under 95\%''.
 	
-	The information retrieval literature discusses similar stopping criteria for ranking algorithms like BM25 and variants \cite{DiNunzio2018, Yu2019}. However, the estimators they use to determine the recall rely on the specific ranking functions and depend on their search input. Therefore, the quality of the estimation depends on the adequacy of the model. Our approach, on the contrary, is model-free. 
+	The information retrieval literature discusses similar stopping criteria for ranking algorithms like BM25 and variants \cite{DiNunzio2018, Yu2019}. However, the estimators they use to determine the recall rely on the specific ranking functions and depend on their search input. Therefore, the quality of the estimation depends on the adequacy of the model. Our approach, on the contrary, is independent of model choice or model performance. 
 	
 	We evaluate this stopping criteria on real-world systematic review datasets on which active learning systems have previously been tested.
 	
@@ -421,16 +424,35 @@ These last examples are promising developments, but [are not ready for live revi
 		\item \textbf{Actual Recall}: The recall when the stopping criteria is met
 		\item \textbf{WS-SC}: Work saved when the stopping criteria is met \footnote{we do not use work saved over sampling, is it is not axiomatic that seeing 95\% of a random sample would achieve 95\% recall}
 		\item \textbf{Additional Burden}: The proportion of the literature that need to be screened in order to \textit{be confident} that 95\% recall has been achieved, after 95\% of documents have actually been identified.
+		\item \textbf{Missed Recall}: The amount by which, if any, the recall target was missed - in percentage points
 	\end{itemize}
-	We operationalise the heuristic stopping criteria with 10, 20, and 50 irrelevant records in a row. For simplicity, we use a basic SVM model [REFS], with 1-2 word n-grams in the document abstracts used as input data. We start with random samples of [100, 200, and 500] documents.
+	We operationalise the heuristic stopping criteria with 50, 100, and 200 irrelevant records in a row. For simplicity, we use a basic SVM model [REFS], with 1-2 word n-grams in the document abstracts used as input data. We start with random samples of [100, 200, and 500] documents.
+	
+	As the intention is to evaluate stopping criteria, rather than machine learning approaches, we focus on additional burden and missed recall. These parameters correspond to the tradeoff inherent in stopping criteria: stopping too early means missing the recall target, stopping too late means undergoing additional burden than was actually required to meet the target.
 	
 	
 	
 	%\subsubsection*{Evaluation Data}
 	
-	We use the collection of systematic reviews used to develop machine learning applications for document screening by Aaron Cohen and co-authors in 2006 \cite{Cohen2006}. This study was the first to apply machine-learning to classifying the relevance of documents in systematic reviews, and the underlying data was made public. It contains 15 sets of documents from comprehensive literature reviews of classes of drugs used in treating specific conditions. For each document, the original authors' decision to exclude or include at abstract and full-text level is given. We try to predict the relevance at abstract level.
+	We use the collection of systematic reviews used to develop machine learning applications for document screening by Aaron Cohen and co-authors in 2006 \cite{Cohen2006}, along with PB COPD, and FASTREAD \todo{fill in gaps}. We feel that testing on datasets with different properties and from different domains is key to establishing criteria appropriate for general use. In this way we can show how well the criteria perform even when the model performs badly.
 	
 	\section*{Results}
+	
+	\begin{figure}
+		\includegraphics[width=\linewidth]{../images/burden_vs_misrecall}
+		\caption{Additional burden ($y > 0$) and missed recall ($ y < 0 $) for the range of stopping criteria tested.}
+		\label{additional-burden-missed-recall}
+	\end{figure}
+
+	\begin{figure}
+	\includegraphics[width=\linewidth]{../images/wss_recall_burden_boxplot}
+	\caption{Work saved, recall and additional burden across a variety of stopping criteria}
+	\label{additional-burden-missed-recall}
+\end{figure}
+
+	
+	
+	
 	
 	\section*{Discussion}
 	
