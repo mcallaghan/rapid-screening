@@ -72,6 +72,7 @@
 
 \usepackage{todonotes}
 \usepackage{graphicx}
+\usepackage{amsmath}
 \usepackage{url}
 %\def\includegraphic{}
 %\def\includegraphics{}
@@ -351,6 +352,38 @@ These last examples are promising developments, but [are not ready for live revi
 
 
 \subsection*{A Statistical Stopping Criterion for Active Learning}
+
+	\subsection*{Random Sampling}
+
+	Using the cumulative distribution function of the hypergeometric distribution, we can estimate the probability of observing $k$ or fewer relevant documents after drawing $N$ documents without replacement from a pool of $M$ documents, of which $n$ are relevant.
+	
+	The probability mass function is defined as,
+
+	\begin{equation}	
+		 p(k, M, n, N) = \frac{\binom{n}{k} \binom{M - n}{N - k}} {\binom{M}{N}}	
+		 \label{pfunc}
+	\end{equation}
+	
+	After seeing a proportion of the documents in a query, we can set $M$ to the number of documents remaining, and begin drawing documents at random from the remaining unseen documents. After each draw, $k$ is the number of relevant documents seen since sampling began, and $N$ is the number of documents sampled. We can generate a counterfactual $\hat{n}$, corresponding to the largest integer greater than the number of relevant documents seen $\rho$ divided by the recall target $\tau$ minus the relevant documents seen before random sampling began $\hat{\rho}$
+	
+	\begin{equation}
+	\hat{n} = \lceil \frac{\rho}{\tau} - \hat{\rho} \rceil
+	\end{equation}
+	
+	
+	Substituting $\hat{n}$ into equation \ref{pfunc}, we can generate the $p$, the probability of observing $k$ or fewer documents if our recall target had been reached. If this is below $1-\alpha$, our confidence level, we can be $\alpha$ confident that our target has been reached.
+	
+	\subsection*{Pseudo-random sampling}
+	In order to decide when to begin a random sample, we employ pseudo-random sampling, where we treat previously screened documents as a random sample. The distribution of relevant documents among previously screened documents is clearly not random, as documents predicted to be relevant are prioritised. It is reasonable to assume, though, that the distribution of relevant documents is greater among previously screened documents than among remaining unseen documents. This would make the following estimates conservative. 
+	
+	After reviewing each document, $S$ documents are screened, and $U$ documents are yet to be seen. We treat $i = 1 \dots S$ of the previously screened documents as a random sample, and calculate $p$ as before for each sample, taking the minimum across all samples $\dot{p}$. If $\dot{p}$ is less than $1-\frac{\alpha}{2}$, we switch to random sampling. We also calculate $\dot{p}$ for the remaining values as if we had not switched to random sampling and present these in the results below.
+
+
+	\medskip
+	
+	\subsection*{Old description}
+
+
 	Figure \ref{flow} shows a workflow for the approach proposed in this paper. 
 	The random sampling occurs at the end of the process, and is used to estimate the number of relevant documents remaining and the total number of relevant documents. 
 	The rationale is to limit the uncertainty to a subsection of the dataset: that which has not yet been screened. 
@@ -366,21 +399,24 @@ These last examples are promising developments, but [are not ready for live revi
 		\begin{tabular}{p{0.15\linewidth} p{0.425\linewidth} p{0.425\linewidth}}
 			Parameter & Description & Estimation \\
 			\hline
-			$ N  $ &  Total number of studies & \textit{Observed} \\
+			$ P  $ &  Total number of studies & \textit{Observed} \\
 			$ S $ & Number of studies coded by humans & \textit{Observed} \\
-			$ U $ & Number of studies not yet coded by humans & \textit{Observed} ($N - S$) \\
-			$ p_S $ & relevance of documents rated by humans & \textit{Observed} \\
+			$ U $ & Number of studies not yet coded by humans & \textit{Observed} ($P - S$) \\
 			$ \alpha $ & Acceptable uncertainty level & \textit{Given} \\
-			$ \kappa $ & & \\
-			$ n $ & Number of randomly drawn documents & \textit{Observed} \\
-			$ \tilde{n} $ & & \\
-			$ \kappa $ & & \\
-			$ \hat{R} $ & Estimated recall & \\
-			$ \dot{R} $ & Minimum estimated recall at a given confidence threshold & \\
+			$ \tau $ & Target recall threshold & \textit{Given} \\
+			$ k $ & Number of relevant documents drawn & \\
+			$ N $ & Number of randomly drawn documents & \textit{Observed} \\
+			$ M $ & Number of remaining unseen documents before sampling & \\
+			$ n $ & Number of relevant documents in sample & \\
+			$ \hat{n} $ & Minimum number of relevant documents in sample that would mean the recall threshold had been reached  & \\
 		\end{tabular}
 		\caption{Parameters}
 		\label{parameters}
 	\end{table}
+
+	
+
+
 	
 	Table \ref{parameters} shows the parameters, known, estimated, and given, available during the random sampling process and required to estimate recall. 
 	Expanding on what was stated before, recall - at a given confidence threshold is a function of 1) the upper estimate of the relevance of remaining documents, 2) The estimated relevance of all documents in the dataset, 3) The proportion of documents not yet seen. 

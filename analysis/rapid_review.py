@@ -82,7 +82,7 @@ class ScreenScenario:
         self.s = sample
         self.irrelevant_heuristic = irrelevant_heuristic # how many irrelevant do we have to see in a row in order to stop
         self.results = []
-        self.iteration_size = 20
+        self.iteration_size = 40
         self.iterations = 0
         self.recall_track = []
         self.work_track = []
@@ -94,9 +94,9 @@ class ScreenScenario:
         self.recall_pf = None
         self.recall_bir = None
         self.recall_bir_ci = None
-        self.wss95_bir = None # Work saved at 95\% recall
-        self.wss95_bir_ci = None
-        self.wss95_pf = None # Work saved at 95\% recall with perfect knowledge
+        self.wss_bir = None # Work saved 
+        self.wss_bir_ci = None
+        self.wss_pf = None # Work saved
         self.unseen_p = None
         
         self.X = TfidfVectorizer(
@@ -121,23 +121,32 @@ class ScreenScenario:
         self.random_recall_track = []
         self.random_work_track = []
         self.estimated_recall_path = []
-        self.estimated_p_path = []
         self.hyper_hypo_path = []
         self.prob_recall_path = []
         self.max_min_recall_path= []
-        self.wss95_bir = None
-        self.wss95_bir_ci = None
-        self.wss95_pf = None
-        self.wss95_ih = None
-        self.wss95_rs = None
-        self.wss95_nrs = None
-        self.wss95_hyper = None
+        self.prob_target_path = []
+        self.nr_prob_target_path = []
+        self.prob_target = None
+        self.wss_bir = None
+        self.wss_bir_ci = None
+        self.wss_pf = None
+        self.wss_ih = None
+        self.wss_rs = None
+        self.wss_nrs = None
+        self.wss_hyper = None
         self.max_prob_recall = 0
+        self.min_prob_target = 1
         for ih in self.irrelevant_heuristic:
-            setattr(self, f'wss95_ih_{ih}', None)
+            setattr(self, f'wss_ih_{ih}', None)
 
-    def screen(self, i, rs=False, nrs=True, alpha=0.95, recall_target=0.95):
 
+    def screen(self, i, rs=False, nrs=True, alpha=0.95, recall_target=0.95, max_switch=0.8):
+
+        def gen_hypo(X, r_seen, r_target):
+            return math.ceil(r_seen/r_target+0.01) - r_seen + X
+
+        vgen_hypo = np.vectorize(gen_hypo)
+        
         self.recall_target = recall_target
         self.alpha = alpha
         s = self.s
@@ -168,10 +177,12 @@ class ScreenScenario:
         # Do some machine learning
         for clf in self.models:
             learning = True
+            time_checking=0.0
+            time_fitting=0.0
             while learning:
                 self.iterations +=1
                 clear_output(wait=True)
-                print(f"Dataset: {self.dataset}, iteration {self.iteration}.  {self.seen_docs} out of {self.N} documents seen ({self.seen_docs/self.N:.0%}) - recall: {self.get_recall():.2%}, probable recall: {self.max_prob_recall:.2%}")
+                print(f"Dataset: {self.dataset}, iteration {self.iteration}.  {self.seen_docs} out of {self.N} documents seen ({self.seen_docs/self.N:.0%}) - recall: {self.get_recall():.2%}, probality under target recall: {self.min_prob_target:.2%} time fitting model: {time_fitting:.2f}s, time checking recall {time_checking:.2f}")
                 index = self.df.query('seen==1').index
                 unseen_index = self.df.query('seen==0').index
                 if len(unseen_index) == 0:
@@ -203,18 +214,21 @@ class ScreenScenario:
                         self.df = tdf
                     next_index = unseen_index[:self.iteration_size]
                 else:
+                    t0 = time.time()
                     clf.fit(x,y)
+                    time_fitting = time.time()-t0
                     y_pred = clf.predict_proba(self.X[unseen_index])[:,1]
                     if rs and self.iterations > 2 and self.random_work_track == []:
-                        if (max(y_pred) < 0.2 and (self.max_prob_recall > self.recall_target or last_n_relevant==0)) or self.seen_docs/self.N > 0.2:
+                        if (max(y_pred) < 0.2 and (self.min_prob_target < 1 - self.alpha*0.5 or last_n_relevant==0)) or self.seen_docs/self.N > self.recall_target*max_switch:
                             self.last_iteration_relevance=last_iteration_relevance
                             tdf = copy.deepcopy(self.df)
                             r = self.sample_threshold()
-                            break
+                            # break
                             self.df = tdf
                     # These are the next documents
                     next_index = unseen_index[(-y_pred).argsort()[:self.iteration_size]]
 
+                t0 = time.time()
                 for i in next_index:
                     self.df.loc[i,'seen'] = 1
                     self.ratings.append(self.df.loc[i,'relevant'])
@@ -226,62 +240,47 @@ class ScreenScenario:
                     for ih in self.irrelevant_heuristic:
                         last_ratings = self.ratings[-ih:]
                         if len(last_ratings) == ih and np.sum(last_ratings)==0:
-                            if getattr(self, f'wss95_ih_{ih}') is None:
-                                setattr(self, f'wss95_ih_{ih}', 1 - self.seen_docs / self.N)
+                            if getattr(self, f'wss_ih_{ih}') is None:
+                                setattr(self, f'wss_ih_{ih}', 1 - self.seen_docs / self.N)
                                 setattr(self, f'recall_ih_{ih}', self.get_recall())
-                    if self.r_seen > self.r_predicted_upperbound and self.wss95_bir_ci is None:
-                        self.wss95_bir_ci = 1 - self.seen_docs / self.N
+                    if self.r_seen > self.r_predicted_upperbound and self.wss_bir_ci is None:
+                        self.wss_bir_ci = 1 - self.seen_docs / self.N
                         self.recall_bir_ci = self.get_recall()
-                    if self.get_recall() > self.recall_target and self.wss95_pf is None:
-                        self.wss95_pf = 1 - self.seen_docs / self.N
+                    if self.get_recall() > self.recall_target and self.wss_pf is None:
+                        self.wss_pf = 1 - self.seen_docs / self.N
                         self.recall_pf = self.get_recall()
-                    if self.r_seen > self.r_predicted and self.wss95_bir is None:
-                        self.wss95_bir = 1 - self.seen_docs / self.N
+                    if self.r_seen > self.r_predicted and self.wss_bir is None:
+                        self.wss_bir = 1 - self.seen_docs / self.N
                         self.recall_bir = self.get_recall()
                     X = 0
                     max_min_recall = 0
                     self.max_prob_recall = 0
-                    if (self.wss95_nrs is None or self.wss95_hyper is None) and nrs is True:
-                        for n, j in enumerate(self.ratings[::-1]):
-                            X+=j
-                            if n < 20:
-                                continue
-                            p_tilde, ci = ci_ac(X, n+1, self.alpha)
-                            estimated_r_docs = (p_tilde+ci)*(self.N-self.seen_docs) + self.r_seen
-                            estimated_recall_min = self.r_seen / estimated_r_docs
-                            if estimated_recall_min > max_min_recall:
-                                max_min_recall = estimated_recall_min
-                            p_tilde, ci = ci_ac(X, n+1, self.alpha/3)
-                            prob_r_docs = (p_tilde+ci)*(self.N-self.seen_docs) + self.r_seen
-                            prob_recall_min = self.r_seen / prob_r_docs
-                            if prob_recall_min > self.max_prob_recall:
-                                self.max_prob_recall = prob_recall_min                            
-                            if n > 100 and estimated_recall_min < 0.5:
-                                break
-                            if n > 500 and estimated_recall_min < 0.8:
-                                break
-                            if n > 1000 and estimated_recall_min < 0.9:
-                                break
+                    if nrs is True:# (self.wss_nrs is None or self.wss_hyper is None) and nrs is True:
+                        self.n_remaining=self.N - self.seen_docs
+                        Xs = np.cumsum(np.array(self.ratings[::-1]))
+                        ns = np.arange(len(self.ratings))
+                        hypotheticals = vgen_hypo(Xs, self.r_seen, self.recall_target)
+                        prob_target = hypergeom.cdf(Xs, self.n_remaining+ns, hypotheticals, ns+1)
+                        self.min_prob_target = prob_target.min()
                         
-                        if max_min_recall > self.recall_target and self.wss95_nrs is None:
-                            self.wss95_nrs = 1 - self.seen_docs / self.N
+                        if self.min_prob_target < 1-self.alpha and self.wss_nrs is None:
+                            self.wss_nrs = 1 - self.seen_docs / self.N
                             self.recall_nrs = self.get_recall()
-                        self.prob_recall_path.append(self.max_prob_recall)
-                        self.max_min_recall_path.append(max_min_recall)
-                    
-            if self.wss95_nrs is None:
-                self.wss95_nrs = 0
+                        self.nr_prob_target_path.append(self.min_prob_target)
+                time_checking=time.time()-t0
+            if self.wss_nrs is None:
+                self.wss_nrs = 0
                 self.recall_nrs = 1
-            if self.wss95_bir is None:
-                self.wss95_bir = 0
+            if self.wss_bir is None:
+                self.wss_bir = 0
                 self.recall_bir = 1
-            if self.wss95_bir_ci is None:
-                self.wss95_bir_ci = 0
+            if self.wss_bir_ci is None:
+                self.wss_bir_ci = 0
                 self.recall_bir_ci = 1
             
             for ih in self.irrelevant_heuristic:
-                if getattr(self, f'wss95_ih_{ih}') is None:
-                    setattr(self, f'wss95_ih_{ih}', 0)
+                if getattr(self, f'wss_ih_{ih}') is None:
+                    setattr(self, f'wss_ih_{ih}', 0)
                     setattr(self, f'recall_ih_{ih}', 1)
 
         ignore_fields = ["df", "X", "unseen_p"]
@@ -304,10 +303,6 @@ class ScreenScenario:
         self.n_remaining_pre_sample = self.N - self.seen_docs
         self.r_seen_pre_sample = self.r_seen
         self.random_start_recall = self.get_recall()
-        self.estimated_recall_path = []
-        self.hyper_linterval_path = []
-        self.hyper_uinterval_path = []
-        self.X_sample_path = []
         X = 0
 
         print(f"Dataset: {self.dataset}, iteration {self.iteration}.  {self.seen_docs} out of {self.N} documents seen ({self.seen_docs/self.N:.0%}) - recall: {self.get_recall():.0%} - switching to random sampling")
@@ -324,62 +319,17 @@ class ScreenScenario:
             self.random_recall_track.append(self.get_recall())
             self.random_work_track.append(self.seen_docs / self.N)            
 
-            p_tilde, ci = ci_ac(X, j+1, self.alpha)
-            self.n_remaining = self.N - self.seen_docs
-            self.estimated_r_docs = (p_tilde+ci)*self.n_remaining + self.r_seen
-            self.estimated_p_ub = self.estimated_r_docs / self.N            
-            self.estimated_recall_min = self.r_seen / self.estimated_r_docs
+            self.hypothetical_95 = math.ceil(self.r_seen / self.recall_target + 0.01) - self.r_seen_pre_sample
+            self.prob_target = hypergeom.cdf(X, self.n_remaining_pre_sample, self.hypothetical_95, j+1)
+            self.prob_target_path.append(self.prob_target)
 
-            self.estimated_p_path.append(p_tilde+ci)
-            self.estimated_recall_path.append(self.estimated_recall_min)
-
-            self.hypothetical_95 = math.ceil(self.r_seen / self.recall_target + 0.01) - self.r_seen + X
-            self.hyper_prob_pmf = hypergeom.pmf(X, j+1+self.n_remaining, self.hypothetical_95, j+1)
-            self.hyper_prob = hypergeom.cdf(X, j+1+self.n_remaining, self.hypothetical_95, j+1)
-
-            # The interval of possible values of X (relevant marbles sampled) given the number of marbles in the pot
-            # , the number of relevant marbles that would mean that the target recall had been reached, and the
-            # number of marbles seen, at the given confidence interval
-            self.hyper_interval = hypergeom.interval(self.alpha, j+1+self.n_remaining, self.hypothetical_95, j+1)
-
-            self.hyper_uinterval_path.append(self.hyper_interval[1])
-            self.hyper_linterval_path.append(self.hyper_interval[0])
-            self.X_sample_path.append(self.X_sample)
-
-
-            #self.hyper_prob_diff =  hypergeom.pmf(X, j+1+self.n_remaining, self.hypothetical_95+1, j+1)
-            #self.hyper_hypo_path.append(self.hyper_prob)
-            #print(self.estimated_missed, self.estimated_r_docs)
-            #self.estimated_recall_min = 1 - (p_tilde+ci)/self.estimated_p_ub * self.n_remaining / self.N
-            #if self.hyper_prob < 0.05 and self.wss95_hyper is None:# and self.hyper_prob_diff < self.hyper_prob:
-            
-
-            if X < self.hyper_interval[0] and self.wss95_hyper is None:
+            if self.prob_target < 1 - self.alpha and self.wss_hyper is None:
                 self.recall_hyper = self.get_recall()
-                self.wss95_hyper = 1 - self.seen_docs / self.N
-                hypo = self.hypothetical_95
-                in_interval = True
-                while in_interval:
-                    hypo+=1
-                    if X >= hypergeom.interval(0.95, j+1+self.n_remaining, hypo, j+1)[0]:
-                        self.hyper_linterval = self.r_seen / (hypo + self.r_seen_pre_sample)
-                    else:
-                        break
-                while in_interval:
-                    hypo-=1
-                    if X <= hypergeom.interval(0.95, j+1+self.n_remaining, hypo, j+1)[1]:
-                        self.hyper_uinterval = self.r_seen / (hypo + self.r_seen_pre_sample)
-                    else:
-                        break
-            if self.get_recall() > self.recall_target and self.wss95_pf is None:
-                self.recall_pf = self.get_recall()
-                self.wss95_pf = 1 - self.seen_docs / self.N
+                self.wss_hyper = 1 - self.seen_docs / self.N
             
-            if self.estimated_recall_min > self.recall_target and self.wss95_rs is None:
-                self.wss95_rs = 1 - self.seen_docs / self.N
-                self.recall_rs = self.get_recall()
-                
-                
+            if self.get_recall() > self.recall_target and self.wss_pf is None:
+                self.recall_pf = self.get_recall()
+                self.wss_pf = 1 - self.seen_docs / self.N                
 
         return  
             
