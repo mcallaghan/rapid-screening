@@ -358,13 +358,14 @@ These last examples are promising developments, but [are not ready for live revi
 	To achieve this, we formulate a hypothesis test:
 	We first calculate the number $\hat{n}$ of relevant documents that can maximally remain in the unseen documents to achieve a given recall target. The recall is defined as the ratio of seen relevant documents over all relevant documents
 	\begin{equation}
-		\tau = \frac{\hat{\rho}}{\rho + \tilde{n}}.
+		\tau = \frac{\rho}{\hat{\rho} + \tilde{n}},
 	\end{equation}
+	with the number total number of seen relevant documents $\rho$, the number of seen relevant documents at the time we start random sampling $\hat{\rho}$, and the remaining number of relevant documents in the unseen sample at the time random sampling starts $\tilde{n}$.
 	Reorganization of this equation gives
 	\begin{equation}
-		\tilde{n} = \frac{\hat{\rho}}{\tau} - \rho.
+		\tilde{n} = \frac{\rho}{\tau} - \hat{\rho}.
 	\end{equation}
-	Because we need to use integers and want a conservative estimation, we are using the next largest integer given by the ceiling function:
+	Because we need to use integers, we get the next largest integer given by the ceiling function $\lceil \cdot \rceil$:
 	\begin{equation}
 		\hat{n} = \lceil \frac{\rho}{\tau} - \hat{\rho} \rceil
 	\end{equation}
