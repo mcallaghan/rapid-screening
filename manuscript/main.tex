@@ -350,33 +350,50 @@ This also means that where machine learning has performed well (as in the top fi
 These last examples are promising developments, but [are not ready for live reviews because hard to understand/communicate?? do not give uncertainty about reaching a threshold]
 
 
-
 \subsection*{A Statistical Stopping Criterion for Active Learning}
 
 	\subsection*{Random Sampling}
 
-	Using the cumulative distribution function of the hypergeometric distribution, we can estimate the probability of observing $k$ or fewer relevant documents after drawing $N$ documents without replacement from a pool of $M$ documents, of which $n$ are relevant.
+	Our aim is to formulate a stopping criterion such that a recall of $\tau$ has been reached with confidence level $\alpha$.
+	To achieve this, we formulate a hypothesis test:
+	We first calculate the number $\hat{n}$ of relevant documents that can maximally remain in the unseen documents to achieve a given recall target. The recall is defined as the ratio of seen relevant documents over all relevant documents
+	\begin{equation}
+		\tau = \frac{\hat{\rho}}{\rho + \tilde{n}}.
+	\end{equation}
+	Reorganization of this equation gives
+	\begin{equation}
+		\tilde{n} = \frac{\hat{\rho}}{\tau} - \rho.
+	\end{equation}
+	Because we need to use integers and want a conservative estimation, we are using the next largest integer given by the ceiling function:
+	\begin{equation}
+		\hat{n} = \lceil \frac{\rho}{\tau} - \hat{\rho} \rceil
+	\end{equation}
+	The null-hypothesis to reject can then be formulated as:
+	\begin{quote}
+	$H_0$: There are $\hat{n}$ or more relevant documents remaining in the set of unseen documents.
+	\end{quote}
 	
-	The probability mass function is defined as,
-
+	% notation here follows notation for scipy description of hypergeometric distribution
+	% better use another notation more in line with the literature? -> literature seems to use very different notations
+	
+	In theory, we draw a random sample of $N$ documents, evaluate how many of them are relevant, and denote this number with $k$. We can estimate the probability that we observe $k$ or fewer relevant documents in a random draw of $N$ documents without replacement from a pool of $M$ documents, of which $n$ are relevant using the cumulative distribution function of the hypergeometric distribution.
+This function is defined as the sum over the probability mass function of the hypergeometric distribution $p(x, M, n, N)$:
 	\begin{equation}	
-		 p(k, M, n, N) = \frac{\binom{n}{k} \binom{M - n}{N - k}} {\binom{M}{N}}	
+		 cdf(k, M, n, N) = \sum_{x \leq k} p(x, M, n, N) = \sum_{x \leq k} \frac{\binom{n}{x} \binom{M - n}{N - x}} {\binom{M}{N}},
 		 \label{pfunc}
 	\end{equation}
+	where $\binom{a}{b}$ denote binomial coefficients. In our case, $M$ is the number of unseen documents before we start random sampling.
 	
-	After seeing a proportion of the documents in a query, we can set $M$ to the number of documents remaining, and begin drawing documents at random from the remaining unseen documents. After each draw, $k$ is the number of relevant documents seen since sampling began, and $N$ is the number of documents sampled. We can generate a counterfactual $\hat{n}$, corresponding to the largest integer greater than the number of relevant documents seen $\rho$ divided by the recall target $\tau$ minus the relevant documents seen before random sampling began $\hat{\rho}$
+	We can reject the null hypothesis if the p-value $p = cdf(k,M,\hat{n},N)$ is smaller than $1 - \alpha$ [references to hypergeometric testing?, needs further argumentation?]. Because we are testing for the lower tail, this implies that we can be confident with a level $\alpha$ that the number of unseen relevant documents is lower than $\hat{n}$.
 	
-	\begin{equation}
-	\hat{n} = \lceil \frac{\rho}{\tau} - \hat{\rho} \rceil
-	\end{equation}
-	
-	
-	Substituting $\hat{n}$ into equation \ref{pfunc}, we can generate the $p$, the probability of observing $k$ or fewer documents if our recall target had been reached. If this is below $1-\alpha$, our confidence level, we can be $\alpha$ confident that our target has been reached.
-	
+	In practice, we can draw random unseen documents repeatedly. After each draw, we calculate the p-value using the number of relevant documents $k$ and the number of randomly sampled documents $N$.
+	We can stop the screening once a p-value $p < 1 - \alpha$ is reached.
+
+
 	\subsection*{Pseudo-random sampling}
-	In order to decide when to begin a random sample, we employ pseudo-random sampling, where we treat previously screened documents as a random sample. The distribution of relevant documents among previously screened documents is clearly not random, as documents predicted to be relevant are prioritised. It is reasonable to assume, though, that the distribution of relevant documents is greater among previously screened documents than among remaining unseen documents. This would make the following estimates conservative. 
+	In order to decide when to begin a random sample, we employ pseudo-random sampling, where we treat previously screened documents as a random sample. The distribution of relevant documents among previously screened documents is clearly not random, as documents predicted to be relevant are prioritised. It is reasonable to assume, though, that the density of relevant documents is greater among previously screened documents than among remaining unseen documents. This would make the following estimates conservative. 
 	
-	After reviewing each document, $S$ documents are screened, and $U$ documents are yet to be seen. We treat $i = 1 \dots S$ of the previously screened documents as a random sample, and calculate $p$ as before for each sample, taking the minimum across all samples $\dot{p}$. If $\dot{p}$ is less than $1-\frac{\alpha}{2}$, we switch to random sampling. We also calculate $\dot{p}$ for the remaining values as if we had not switched to random sampling and present these in the results below.
+	After reviewing each document, $S$ documents are screened, and $U$ documents are yet to be seen. We treat $i = 1 \dots S$ of the previously screened documents as a random sample, and calculate $p$ as before for each sample, taking the minimum across all samples $p_{min}$. If $p_{min}$ is less than $1-\frac{\alpha}{2}$, we switch to random sampling. We also calculate $p_{min}$ for the remaining values as if we had not switched to random sampling and present these in the results below.
 
 
 	\medskip
