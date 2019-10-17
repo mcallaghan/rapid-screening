@@ -74,6 +74,7 @@
 \usepackage{graphicx}
 \usepackage{amsmath}
 \usepackage{url}
+\usepackage{subcaption}
 %\def\includegraphic{}
 %\def\includegraphics{}
 
@@ -442,12 +443,6 @@ These last examples are promising developments, but [are not ready for live revi
 	We call the number of documents it is necessary to review to establish with confidence that reviewers have achieved 95\% recall after they have already achieved 95\% recall the \textit{additional burden}. 
 	
 	In figure \ref{additional-burden}, we investigate how the total number of documents and the proportion of relevant documents affect the additional burden \todo{Use the number of documents seen instead of p?}. We demonstrate the additional burden decreases \todo{how? Non-linearly?} with increasing total numbers of documents. With decreasing relevance of the remaining documents (holding the recall constant at 95\%, this means that fewer documents remain unseen), the additional burden increases. This implies that where the machine learning has more successfully identified documents and reduced burden, the additional burden required to establish the level of recall is higher. This is because the proportion of documents not seen is greater, so uncertainty around the relevance of that proportion has a greater impact on the estimation of recall.
-		
-	\begin{figure}
-		\includegraphics[width=\linewidth]{../images/additional_burden}
-		\caption{Additional burden for 20 random samples where the 95\% threshold has been reached, and the remaining documents are 1\%, 2\% or 5\% relevant, for different total numbers of documents.}
-		\label{additional-burden}
-	\end{figure}
 
 	When to move to random sampling remains an open question. Our current approach is to use the predicted relevance of the machine learning model as a guide. We calculate the [minimum/maximum] estimated recall based on observing the predicted relevance level in [x] random documents. If the estimated recall would be below the threshold, then we begin drawing random documents.
 
@@ -473,30 +468,44 @@ These last examples are promising developments, but [are not ready for live revi
 	We use the collection of systematic reviews used to develop machine learning applications for document screening by Aaron Cohen and co-authors in 2006 \cite{Cohen2006}, along with PB COPD, and FASTREAD \todo{fill in gaps}. We feel that testing on datasets with different properties and from different domains is key to establishing criteria appropriate for general use. In this way we can show how well the criteria perform even when the model performs badly.
 	
 	\section*{Results}
-	
-	\begin{figure}
-		\includegraphics[width=\linewidth]{../images/burden_vs_misrecall}
-		\caption{Additional burden ($y > 0$) and missed recall ($ y < 0 $) for the range of stopping criteria tested.}
-		\label{additional-burden-missed-recall}
-	\end{figure}
 
-	\begin{figure}
-		\includegraphics[width=\linewidth]{../images/wss_recall_burden_boxplot}
-		\caption{Work saved, recall and additional burden across a variety of stopping criteria}
-		\label{additional-burden-missed-recall-boxplots}
-	\end{figure}
-
-	\begin{figure}
-	\includegraphics[width=\linewidth]{../images/results_hex}
-	\caption{Work saved, recall across a variety of stopping criteria}
-	\label{results-hex}
-\end{figure}
-
-	\begin{figure}
-	\includegraphics[width=\linewidth]{../images/ab_recall_studies}
-	\caption{Work saved, recall across a variety of stopping criteria}
-	\label{ab_recall_studies}
-\end{figure}
+    \begin{figure*}
+	\centering
+	\begin{subfigure}[b]{0.475\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{../images/jointplot_bir}
+		\caption[Network2]%Example-Image
+		{{\small Baseline Sampling}}    
+		\label{fig:mean and std of net14}
+	\end{subfigure}
+	\hfill
+	\begin{subfigure}[b]{0.475\textwidth}  
+		\centering 
+		\includegraphics[width=\textwidth]{../images/jointplot_ih_50}
+		\caption[]%
+		{{\small 50 consecutive irrelevant results}}    
+		\label{fig:mean and std of net24}
+	\end{subfigure}
+	\vskip\baselineskip
+	\begin{subfigure}[b]{0.475\textwidth}   
+		\centering 
+		\includegraphics[width=\textwidth]{../images/jointplot_hyper}
+		\caption[]%
+		{{\small Hypergeometric sampling \\}}    
+		\label{fig:mean and std of net34}
+	\end{subfigure}
+	\hfill
+	\begin{subfigure}[b]{0.475\textwidth}   
+		\centering 
+		\includegraphics[width=\textwidth]{../images/jointplot_nrs}
+		\caption[]%
+		{{\footnotesize Pseudorandom hypergeometric sampling}}    
+		\label{fig:mean and std of net44}
+	\end{subfigure}
+	\caption[ The average and standard deviation of critical parameters ]
+	{\small The average and standard deviation of critical parameters: Region R4} 
+	\label{fig:mean and std of nets}
+\end{figure*}
 
 	
 	

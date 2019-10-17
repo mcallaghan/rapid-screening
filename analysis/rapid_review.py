@@ -55,6 +55,7 @@ def ci_ac(X, n, a):
     X_tilde = X + k**2/2
     n_tilde = n + k**2
     p_tilde = X_tilde / n_tilde
+    
     q_tilde = 1-p_tilde
 
     ci = k* np.sqrt(p_tilde*q_tilde/n_tilde) 
@@ -82,7 +83,7 @@ class ScreenScenario:
         self.s = sample
         self.irrelevant_heuristic = irrelevant_heuristic # how many irrelevant do we have to see in a row in order to stop
         self.results = []
-        self.iteration_size = 40
+        self.iteration_size = 20
         self.iterations = 0
         self.recall_track = []
         self.work_track = []
@@ -252,9 +253,6 @@ class ScreenScenario:
                     if self.r_seen > self.r_predicted and self.wss_bir is None:
                         self.wss_bir = 1 - self.seen_docs / self.N
                         self.recall_bir = self.get_recall()
-                    X = 0
-                    max_min_recall = 0
-                    self.max_prob_recall = 0
                     if nrs is True:# (self.wss_nrs is None or self.wss_hyper is None) and nrs is True:
                         self.n_remaining=self.N - self.seen_docs
                         Xs = np.cumsum(np.array(self.ratings[::-1]))
