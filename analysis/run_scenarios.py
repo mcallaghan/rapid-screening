@@ -3,7 +3,6 @@ import numpy as np
 import rapid_review as rr
 import os, sys
 import matplotlib.pyplot as plt
-import importlib
 from sklearn.svm import SVC, OneClassSVM
 import argparse
 from functools import partial
@@ -12,6 +11,7 @@ from functools import partial
 parser = argparse.ArgumentParser(description="run ML systematic review scenarios")
 parser.add_argument('iterations', type=int)
 parser.add_argument('-p', type=int, default=0)
+parser.add_argument('-mpi', type=int, default=0)
 args = parser.parse_args()
 
 print(args.p)
@@ -78,6 +78,16 @@ for name, group in cohen_db.groupby('review'):
                 results.append(pool.map(partial(simulate_screening_parallel, ss=ss), list(range(iterations))))
             print(results)
             break
+        elif args.mpi:
+            from mpi4py import MPI
+            comm = MPI.COMM_WORLD
+            num_procs = comm.Get_size()
+            rank = comm.Get_rank()
+            stat = MPI.Status()
+            r = ss.screen(rank, True)
+            results.append(r)
+            results_df = pd.DataFrame.from_dict(results)
+            results_df.to_csv(f'../results/results_{rank}.csv', index=False)
         else:
             for i in range(iterations):
                 print(i)
