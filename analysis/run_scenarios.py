@@ -2,7 +2,6 @@ import pandas as pd
 import numpy as np
 import rapid_review as rr
 import os, sys
-import matplotlib.pyplot as plt
 from sklearn.svm import SVC, OneClassSVM
 import argparse
 from functools import partial
