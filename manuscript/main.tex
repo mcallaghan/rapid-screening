@@ -249,14 +249,15 @@
 	%% Introduction
 	\section*{Background}
 	
-	Machine learning for evidence synthesis is a growing field, where machine learning enabled interventions are introduced at various points in the workflow, in order to reduce the human effort required to produce systematic reviews and other forms of evidence synthesis.
+	Machine learning for evidence synthesis is an rapidly emerging field [cite].
+	Machine learning enabled interventions have been proposed at various points in order to reduce the human effort required to produce systematic reviews and other forms of evidence synthesis.
 	A major strand of the literature works on screening - the identification of relevant documents in a set of documents whose relevance is uncertain \cite{OMara-Eves2015}. 
 	For this task, several papers have developed or evaluated active learning. 
 	
 	Active learning is an iterative process where documents screened by humans are used to train a machine learning model to predict the relevance of unseen papers \cite{Settles2009}.
 	The most relevant studies are passed back to the human and rated, generating more labels to feed back to the machine. 
 	By prioritising those studies most likely to be relevant, a human reviewer most often identifies all relevant studies - or a given proportion of relevant studies (recall) - before having seen all the documents in the corpus. 
-	The proportion of documents not yet seen by the human when they reach the given recall threshold are referred to as the work saved.
+	The proportion of documents not yet seen by the human when they reach the given recall threshold are referred to as the work saved, as this represents the proportion of documents that they do not have to screen, which they would have had to without machine learning.
 	
 	In live review settings, however, the recall remains unknown until all documents have been screened. 
 	In order for work to really be saved, reviewers have to stop screening while uncertain about the recall. This is particularly problematic in systematic reviews because low recall increases the risk of publication bias %\cite{Lefebrve in Cochrane}
@@ -268,11 +269,12 @@
 	\end{itemize}
 	
 	We show in this paper how the first two criteria are inadequate.
-	We argue that the inadequacy lies in the unreliability - particularly across different domains, or datasets with different properties \todo{ref on cross-domain reliability} - both of the work saved and the recall achieved. Not achieving the desired level of recall is a particular challenge for systematic review screening. In systematic reviews, the larger the proportion of the relevant literature is not considered, the greater the risk of publication bias \todo{ref cochrane handbook}. 
+	We argue that the inadequacy lies in the unreliability - particularly across different domains, or datasets with different properties \todo{ref on cross-domain reliability} - both of the work saved and the recall achieved.  
 	Without the reliable or reportable achievement of a desired level of recall, AL systems in live reviews remain challenging.
 	
 	This study proposes a system for estimating the recall based on random sampling of remaining documents. 
-	We draw on the literature on binomial distributions \cite{Brown2001}, to illustrate how AL users can predefine a threshold in terms of uncertainty and recall, and use this to transparently save work with machine learning, while making a statement like ``There is a <5\% chance that we achieve a recall under 95\%''.
+	We use basic statistics to test the hypothesis that less than a given recall threshold has been achieved.
+	This allows AL users to predefine a threshold in terms of uncertainty and recall, so that they can make transparent, understandable statements like ``There is a <5\% chance that we achieve a recall under 95\%''.
 	
 	The information retrieval literature discusses similar stopping criteria for ranking algorithms like BM25 and variants \cite{DiNunzio2018, Yu2019}. However, the estimators they use to determine the recall rely on the specific ranking functions and depend on their search input. Therefore, the quality of the estimation depends on the adequacy of the model. Our approach, on the contrary, is independent of model choice or model performance. 
 	
@@ -282,8 +284,8 @@
 	
 	\subsection*{Existing Stopping Criteria for Active Learning}
 	
-	We start by explaining the sampling and heuristic based stopping criteria before showing with toy data how the criteria fall short. 
-	Then we introduce our own suggested stopping criteria, and show its benefits with toy data, before testing all criteria on real world datasets.
+	We start by explaining the sampling and heuristic based stopping criteria and showing how their methodological weaknesses. 
+	Then we introduce our own suggested stopping criteria before testing all criteria on real world datasets.
 	
 	\subsubsection*{Sampling Based Stopping Criteria}
 	
@@ -293,36 +295,24 @@
 	
 
 	
-	However, the estimation of the BIR fails to take into account the sampling uncertainty. 
+	However, the estimation of the BIR fails to take into account sampling uncertainty. 
 	Figure \ref{bir-sampling}.a shows for 50 random samples of 2,000 documents from 20,000 documents (where 5\% of documents are relevant), the predicted number of documents after each document drawn. 
 	Depending on the luck of the draw, one might estimate the true number of documents as being
 	\begin{itemize}
-		\item much higher than the true value, meaning that the stopping criterion would never be reached - and no work could be saved
+		\item much higher than the true value, meaning that the stopping criterion would never be reached - and no work could be saved, or;
 		\item much lower than the true value, meaning that the stopping criterion would be reached before the desired level of recall was actually achieved
 	\end{itemize}
 	
-	We can estimate the uncertainty of a binomial outcome using an Agresti-Coull confidence interval (which has been shown to be conservative at levels near 0 \todo{this is less relevant here, go back to literature and see if another is better} \cite{Brown2001}). 
-	Figure \ref{bir-sampling}.b shows the 95\% confidence interval (brown) and its upper bound (green) in the same set of random draws. 
-	Where the green line is above the above the lower (upper) grey line, identification of 100\% (95\%) of the estimated number of studies would be impossible, and no work would be saved.
-	
-	Figure \ref{bir-variation} explores different scenarios of true relevance and probability thresholds, showing that the higher the true proportion of relevant documents, the fewer documents one would have to sample to make the identification of a given fraction (the true number of relevant results divided by the upper estimate) possible. 
-	\todo{Why does it behave like this, is there a theoretical maximum for each? something to do with absolute values? a Bug? Is uncertainty a function of being near to 0?} 
-	Even with a relatively high proportion of relevant documents, and a sample of 500, all relevant documents would have to be identified to have a 95\% likelihood of achieving 95\% recall. 
-	With low proportions of relevant documents, only an 80\% recall can be estimated with confidence, even after a sample of 2000, and subsequently identifying all relevant documents. 
-	N.B, these results ignore the random element of sample order, which explains the variation on figure \ref{bir-sampling}. 
-	They show upper confidence bounds for accurate estimates of relevance.
+	Where the yellow line is above the above the upper grey line, identification of 95\% of the estimated number of studies would be impossible, and no work would be saved. Where it is below, true recall, where recall is estimated to be 95\% would be less than 95\%.
 
 	\begin{figure}
-	\includegraphics[width=\linewidth]{../images/bir_sampling.png}
-	\caption{Uncertainty in estimating the baseline inclusion rate. a. shows the estimated BIR after drawing each document, for 50 random samples of from 20,000 documents, after each document is drawn. b. Shows the 95\% Confidence interval (brown) and the upper bound (green) for each of the same samples. The two lines correspond to 100\% of relevant documents, and $\frac{100}{0.95}$\% of relevant documents.}
-	\label{bir-sampling}
+	\includegraphics[width=\linewidth]{../images/bir_sampling_noci.png}
+	\caption{Uncertainty in estimating the baseline inclusion rate. For 50 random samples of 2,000 documents from 20,000 documents, we show the estimated number of relevant documents, after each document is drawn. The two lines correspond to 100\% of relevant documents, and $\frac{100}{0.95}$\% of relevant documents.}
+	\label{bir-sampling}.
+	
+	This shows how even after taking a large sample, baseline estimation inevitably offers poor reliability, both in terms of recall and in work saved.
 \end{figure}
 
-\begin{figure}
-	\includegraphics[width=0.5\linewidth]{../images/bir_variation.png}
-	\caption{Maximum indentifiable fraction of relevant results under different levels of true relevance $p$ and confidence thresholds $\alpha$. Maximum identifiable fraction is the true number of relevant documents divided by the upper estimate.}
-	\label{bir-variation}
-\end{figure}
 
 		
 \subsubsection*{Heuristic Based Stopping Criteria}
@@ -332,9 +322,10 @@ We take this as a proxy for estimating that the proportion of documents remainin
 We find this a promising intuition, but argue that 1) it ignores uncertainty, as discussed in relation to the previous method; and 2) it misunderstands the significance of a low proportion of relevant documents in estimating the recall.
 
 Figure \ref{unseen-proportions} illustrates this second point. 
-We show two scenarios with identical low proportions of relevant documents (note that estimating a proportion lower than 0.02 with 95\% confidence requires 160 consecutive irrelevant documents)\todo{demonstrate?}. 
+We show two scenarios with identical low proportions of relevant documents observed in the unseen documents. 
 Recall is not simply a function of the relevance of unseen documents, but also of the number of unseen documents. 
 This also means that where machine learning has performed well (as in the top figure), low proportions of irrelevant documents in those that remain are indicative of lower recall than where ML has performed less well.
+Likewise, where the proportion of relevant documents is low, a similarly low proportion of relevant documents is likely to be observed, even when true recall is low.
 
 \begin{figure}
 	\includegraphics[width=\linewidth]{../images/proportions_1.png}
@@ -347,8 +338,8 @@ This also means that where machine learning has performed well (as in the top fi
 
 \cite{Wallace2010a} Develop a ``simple, operational stopping criterion'': stopping after half the documents have been screened. Although the criterion worked in their experiment, it is unclear how this could be generalised, and its development depended on knowledge of the true relevance values. 
 \cite{Jonnalagadda2013} note that ``the reviewer can elect to end the process of classifying documents at any point, recognizing that stopping before reviewing all documents involves a trade-off of lower recall for reduced workload'', although clearly the reviewer lacks information about probable recall.
-\cite{Yu2019} adopt a more complicated stopping criterion \todo{How does it actually work??} which allows the user to target a specific level of recall. However, reviewers are not given the opportunity to specify a confidence level, and for two of the four datasets in which they tested their criteria, the median achieved recall at a stopping criteria targeting 95\% recall was below 95\%. \cite{DiNunzio2018} also present an innovative stopping criteria, but it does not take into account uncertainty, and produces results \textit{near} a target recall threshold. 
-These last examples are promising developments, but [are not ready for live reviews because hard to understand/communicate?? do not give uncertainty about reaching a threshold]
+\cite{Yu2019} adopt a more complicated stopping criterion which allows the user to target a specific level of recall. However, reviewers are not given the opportunity to specify a confidence level, and for two of the four datasets in which they tested their criteria, the median achieved recall at a stopping criteria targeting 95\% recall was below 95\%. \cite{DiNunzio2018} also present an innovative stopping criteria, but it does not take into account uncertainty, and produces results \textit{near} a target recall threshold. 
+These last examples are promising developments, but fail to take into account the needs of live systematic reviews, where the reliability of and ease of communication about recall are paramount.
 
 
 \subsection*{A Statistical Stopping Criterion for Active Learning}
@@ -361,7 +352,7 @@ These last examples are promising developments, but [are not ready for live revi
 	\begin{equation}
 		\tau = \frac{\rho}{\hat{\rho} + \tilde{n}},
 	\end{equation}
-	with the number total number of seen relevant documents $\rho$, the number of seen relevant documents at the time we start random sampling $\hat{\rho}$, and the remaining number of relevant documents in the unseen sample at the time random sampling starts $\tilde{n}$.
+	with the total number of seen relevant documents $\rho$, the number of seen relevant documents at the time we start random sampling $\hat{\rho}$, and the remaining number of relevant documents in the unseen sample at the time random sampling starts $\tilde{n}$.
 	Reorganization of this equation gives
 	\begin{equation}
 		\tilde{n} = \frac{\rho}{\tau} - \hat{\rho}.
@@ -400,71 +391,53 @@ This function is defined as the sum over the probability mass function of the hy
 
 	\medskip
 	
-	\subsection*{Old description}
-
-
-	Figure \ref{flow} shows a workflow for the approach proposed in this paper. 
-	The random sampling occurs at the end of the process, and is used to estimate the number of relevant documents remaining and the total number of relevant documents. 
-	The rationale is to limit the uncertainty to a subsection of the dataset: that which has not yet been screened. 
-	As reviewers continue to draw random documents, the uncertainty range decreases, and the proportion of the data about which one is uncertain also decreases.
-	
 	\begin{figure}
 		\includegraphics[width=0.5\linewidth]{../images/flow}
 		\caption{A workflow for active learning in screening with a statistical stopping criterion}
 		\label{flow}
 	\end{figure}
-	
-	\begin{table}
-		\begin{tabular}{p{0.15\linewidth} p{0.425\linewidth} p{0.425\linewidth}}
-			Parameter & Description & Estimation \\
-			\hline
-			$ P  $ &  Total number of studies & \textit{Observed} \\
-			$ S $ & Number of studies coded by humans & \textit{Observed} \\
-			$ U $ & Number of studies not yet coded by humans & \textit{Observed} ($P - S$) \\
-			$ \alpha $ & Acceptable uncertainty level & \textit{Given} \\
-			$ \tau $ & Target recall threshold & \textit{Given} \\
-			$ k $ & Number of relevant documents drawn & \\
-			$ N $ & Number of randomly drawn documents & \textit{Observed} \\
-			$ M $ & Number of remaining unseen documents before sampling & \\
-			$ n $ & Number of relevant documents in sample & \\
-			$ \hat{n} $ & Minimum number of relevant documents in sample that would mean the recall threshold had been reached  & \\
-		\end{tabular}
-		\caption{Parameters}
-		\label{parameters}
-	\end{table}
+
+	\subsection*{Analysis}
+%	
+%	\begin{table}
+%		\begin{tabular}{p{0.15\linewidth} p{0.425\linewidth} p{0.425\linewidth}}
+%			Parameter & Description & Estimation \\
+%			\hline
+%			$ P  $ &  Total number of studies & \textit{Observed} \\
+%			$ S $ & Number of studies coded by humans & \textit{Observed} \\
+%			$ U $ & Number of studies not yet coded by humans & \textit{Observed} ($P - S$) \\
+%			$ \alpha $ & Acceptable uncertainty level & \textit{Given} \\
+%			$ \tau $ & Target recall threshold & \textit{Given} \\
+%			$ k $ & Number of relevant documents drawn & \\
+%			$ N $ & Number of randomly drawn documents & \textit{Observed} \\
+%			$ M $ & Number of remaining unseen documents before sampling & \\
+%			$ n $ & Number of relevant documents in sample & \\
+%			$ \hat{n} $ & Minimum number of relevant documents in sample that would mean the recall threshold had been reached  & \\
+%		\end{tabular}
+%		\caption{Parameters}
+%		\label{parameters}
+%	\end{table}
 
 	
 
-
-	
-	Table \ref{parameters} shows the parameters, known, estimated, and given, available during the random sampling process and required to estimate recall. 
-	Expanding on what was stated before, recall - at a given confidence threshold is a function of 1) the upper estimate of the relevance of remaining documents, 2) The estimated relevance of all documents in the dataset, 3) The proportion of documents not yet seen. 
-	
-	Figure \ref{sample-recall} shows the minimum estimated recall for a set of confidence intervals, along with the actual recall (in grey) for a case where 800 out of 2,000 documents have been reviewed, 2\% of remaining documents are relevant, and 20\% of all documents are relevant. 
-	We see that after 95\% recall has actually been achieved, but before 100\% of documents have been been seen, we can be confident at each of the given confidence levels that 95\% of relevant documents have been identified. 
-	All estimates of recall only reach 100\% after all documents have been seen, as it is not possible to exclude the possibility, at any given confidence level, that the proportion of relevant documents is greater than 0 \todo{Actually maybe this is possible if we work with whole numbers? How does that change things?}. 
-	Figure \ref{sample-recall-variation} shows the various trajectories of a 95\% minimum recall (blue) and actual recall (grey) given the same paramaters for 200 random samples.
-
-	\begin{figure}
-		\includegraphics[width=\linewidth]{../images/sample_recall}
-		\caption{Sample recall}
-		\label{sample-recall}
-	\end{figure}	
-
-	\begin{figure}
-		\includegraphics[width=\linewidth]{../images/sample_recall_2}
-		\caption{Sample recall variation}
-		\label{sample-recall-variation}
-	\end{figure}	
-
-	That the blue lines consistently meet a 95\% threshold to the right of the grey lines indicates that reviewers have to see more than 95\% of relevant documents in order to be confident that they have achieved their threshold. 
-	We call the number of documents it is necessary to review to establish with confidence that reviewers have achieved 95\% recall after they have already achieved 95\% recall the \textit{additional burden}. 
-	
-	In figure \ref{additional-burden}, we investigate how the total number of documents and the proportion of relevant documents affect the additional burden \todo{Use the number of documents seen instead of p?}. We demonstrate the additional burden decreases \todo{how? Non-linearly?} with increasing total numbers of documents. With decreasing relevance of the remaining documents (holding the recall constant at 95\%, this means that fewer documents remain unseen), the additional burden increases. This implies that where the machine learning has more successfully identified documents and reduced burden, the additional burden required to establish the level of recall is higher. This is because the proportion of documents not seen is greater, so uncertainty around the relevance of that proportion has a greater impact on the estimation of recall.
-
-	When to move to random sampling remains an open question. Our current approach is to use the predicted relevance of the machine learning model as a guide. We calculate the [minimum/maximum] estimated recall based on observing the predicted relevance level in [x] random documents. If the estimated recall would be below the threshold, then we begin drawing random documents.
-
-	The stopping criteria explained here is 
+%
+%	
+%	Table \ref{parameters} shows the parameters, known, estimated, and given, available during the random sampling process and required to estimate recall. 
+%	Expanding on what was stated before, recall - at a given confidence threshold is a function of 1) the upper estimate of the relevance of remaining documents, 2) The estimated relevance of all documents in the dataset, 3) The proportion of documents not yet seen. 
+%	
+%	Figure \ref{sample-recall} shows the minimum estimated recall for a set of confidence intervals, along with the actual recall (in grey) for a case where 800 out of 2,000 documents have been reviewed, 2\% of remaining documents are relevant, and 20\% of all documents are relevant. 
+%	We see that after 95\% recall has actually been achieved, but before 100\% of documents have been been seen, we can be confident at each of the given confidence levels that 95\% of relevant documents have been identified. 
+%	All estimates of recall only reach 100\% after all documents have been seen, as it is not possible to exclude the possibility, at any given confidence level, that the proportion of relevant documents is greater than 0 \todo{Actually maybe this is possible if we work with whole numbers? How does that change things?}. 
+%	Figure \ref{sample-recall-variation} shows the various trajectories of a 95\% minimum recall (blue) and actual recall (grey) given the same paramaters for 200 random samples.
+%
+%	That the blue lines consistently meet a 95\% threshold to the right of the grey lines indicates that reviewers have to see more than 95\% of relevant documents in order to be confident that they have achieved their threshold. 
+%	We call the number of documents it is necessary to review to establish with confidence that reviewers have achieved 95\% recall after they have already achieved 95\% recall the \textit{additional burden}. 
+%	
+%	In figure \ref{additional-burden}, we investigate how the total number of documents and the proportion of relevant documents affect the additional burden \todo{Use the number of documents seen instead of p?}. We demonstrate the additional burden decreases \todo{how? Non-linearly?} with increasing total numbers of documents. With decreasing relevance of the remaining documents (holding the recall constant at 95\%, this means that fewer documents remain unseen), the additional burden increases. This implies that where the machine learning has more successfully identified documents and reduced burden, the additional burden required to establish the level of recall is higher. This is because the proportion of documents not seen is greater, so uncertainty around the relevance of that proportion has a greater impact on the estimation of recall.
+%
+%	When to move to random sampling remains an open question. Our current approach is to use the predicted relevance of the machine learning model as a guide. We calculate the [minimum/maximum] estimated recall based on observing the predicted relevance level in [x] random documents. If the estimated recall would be below the threshold, then we begin drawing random documents.
+%
+%	The stopping criteria explained here is 
 	
 	\subsection*{Evaluation}
 	
@@ -475,17 +448,24 @@ This function is defined as the sum over the probability mass function of the hy
 		\item \textbf{Additional Burden}: The proportion of the literature that need to be screened in order to \textit{be confident} that 95\% recall has been achieved, after 95\% of documents have actually been identified.
 		\item \textbf{Missed Recall}: The amount by which, if any, the recall target was missed - in percentage points
 	\end{itemize}
-	We operationalise the heuristic stopping criteria with 50, 100, and 200 irrelevant records in a row. For simplicity, we use a basic SVM model [REFS], with 1-2 word n-grams in the document abstracts used as input data. We start with random samples of [100, 200, and 500] documents.
+	We operationalise the heuristic stopping criteria with 50, 100, and 200 irrelevant records in a row. For simplicity, we use a basic SVM model [REFS], with 1-2 word n-grams in the document abstracts used as input data. We start with random samples of [200 and 500] documents.
 	
-	As the intention is to evaluate stopping criteria, rather than machine learning approaches, we focus on additional burden and missed recall. These parameters correspond to the tradeoff inherent in stopping criteria: stopping too early means missing the recall target, stopping too late means undergoing additional burden than was actually required to meet the target.
+	As the intention is to evaluate stopping criteria, rather than machine learning approaches, we focus on additional burden and missed recall. These parameters correspond to the tradeoff inherent in stopping criteria: stopping too early means missing the recall target, stopping too late means screening more documents than was actually required to meet the target.
 	
 	
 	
 	%\subsubsection*{Evaluation Data}
 	
-	We use the collection of systematic reviews used to develop machine learning applications for document screening by Aaron Cohen and co-authors in 2006 \cite{Cohen2006}, along with PB COPD, and FASTREAD \todo{fill in gaps}. We feel that testing on datasets with different properties and from different domains is key to establishing criteria appropriate for general use. In this way we can show how well the criteria perform even when the model performs badly.
+	We use the collection of systematic reviews used to develop machine learning applications for document screening by Aaron Cohen and co-authors in 2006 \cite{Cohen2006}, along with PB COPD, and FASTREAD [CITE]. We feel that testing on datasets with different properties and from different domains is key to establishing criteria appropriate for general use. In this way we can show how well the criteria perform even when the model performs badly.
 	
 	\section*{Results}
+	
+	Figure \ref{recall-wss} shows the actual recall and work savings achieved when each stopping criteria has been satisfied. 
+	For comparison, we also include the results that would have been achieved with perfect foresight, that is, the work saved when the 95\% recall target has been received.
+	
+	The baseline sampling criteria (Figure \ref{fig:bir}) misses the 95\% recall target in [33]\% of cases, while the most common work saving is 0\%. This is in line with out expectations, that due to random sampling error, the expected number of document will often be over-estimated or under-estimated, resulting in poor work savings or poor recall.
+	
+	The Heuristic based stopping criteria, both for 50 consecutive irrelevant results (Figure \ref{fig:ih_50} - IH50), and for 200 irrelevant results (Figure \ref{fig:ih_200}) also perform unreliably. Although the 
 
     \begin{figure*}
 	\centering
@@ -494,7 +474,7 @@ This function is defined as the sum over the probability mass function of the hy
 		\includegraphics[width=\textwidth]{../images/jointplot_bir}
 		\caption[Network2]%Example-Image
 		{{\small Baseline Sampling}}    
-		\label{fig:mean and std of net14}
+		\label{fig:bir}
 	\end{subfigure}
 	\hfill
 	\begin{subfigure}[b]{0.475\textwidth}  
@@ -502,7 +482,7 @@ This function is defined as the sum over the probability mass function of the hy
 		\includegraphics[width=\textwidth]{../images/jointplot_ih_50}
 		\caption[]%
 		{{\small 50 consecutive irrelevant results}}    
-		\label{fig:mean and std of net24}
+		\label{fig:ih_50}
 	\end{subfigure}
 	\vskip\baselineskip
 	\begin{subfigure}[b]{0.475\textwidth}   
@@ -510,7 +490,7 @@ This function is defined as the sum over the probability mass function of the hy
 		\includegraphics[width=\textwidth]{../images/jointplot_hyper}
 		\caption[]%
 		{{\small Hypergeometric sampling \\}}    
-		\label{fig:mean and std of net34}
+		\label{fig:hyper}
 	\end{subfigure}
 	\hfill
 	\begin{subfigure}[b]{0.475\textwidth}   
@@ -518,11 +498,27 @@ This function is defined as the sum over the probability mass function of the hy
 		\includegraphics[width=\textwidth]{../images/jointplot_nrs}
 		\caption[]%
 		{{\footnotesize Pseudorandom hypergeometric sampling}}    
-		\label{fig:mean and std of net44}
+		\label{fig:nrs}
 	\end{subfigure}
-	\caption[ The average and standard deviation of critical parameters ]
-	{\small The average and standard deviation of critical parameters: Region R4} 
-	\label{fig:mean and std of nets}
+	\vskip\baselineskip
+	\begin{subfigure}[b]{0.475\textwidth}   
+		\centering 
+		\includegraphics[width=\textwidth]{../images/jointplot_ih_200}
+		\caption[]%
+		{{\small 200 consecutive irrelevant results \\}}    
+		\label{fig:ih_200}
+	\end{subfigure}
+	\hfill
+	\begin{subfigure}[b]{0.475\textwidth}   
+		\centering 
+		\includegraphics[width=\textwidth]{../images/jointplot_pf}
+		\caption[]%
+		{{\footnotesize Perfect Foresight}}    
+		\label{fig:pf}
+	\end{subfigure}
+
+	\caption{\small Distribution of recall and work saved after each stopping criteria.} 
+	\label{recall-wss}
 \end{figure*}
 
 	

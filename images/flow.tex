@@ -52,9 +52,11 @@ every join/.style={norm},   % Default linetype for connecting boxes
   
   \node (recall) [decision, join] {Recall $>$ threshold?};
   
-	\node (sform) [form, right=of screenr2, xshift=-15mm] { Estimate $\hat{p}U$ };
+    	\node (e1) [form, right=of stopscreen, xshift=-15mm] { $p < 1-\frac{\alpha}{2}$ };
   
-  \node (rform) [form, right=of recall, xshift=-15mm] {$ 1 - \frac{\hat{p}U}{\hat{p}P} \frac{U}{P}$};
+	%\node (sform) [form, right=of screenr2, xshift=-15mm] { Estimate $\hat{p}U$ };
+  
+  \node (rform) [form, right=of recall, xshift=-15mm] { $p < 1-\alpha $ };
   
   \node (reldocs) [multidoc, below of=recall, xshift=20mm, yshift=-8mm]  {Relevant documents};
   \node (irreldocs) [multidoc, fill=blue!5, below of=recall, xshift=-20mm, yshift=-8mm]  {Irrelevant documents};

@@ -196,7 +196,10 @@ class ScreenScenario:
                 if n_last > 0.05*self.N:
                     n_last = int(round(0.05*self.N))
                 last_iteration = self.ratings[-n_last:]
-                last_iteration_relevance = np.sum(last_iteration)/len(last_iteration)
+                if len(last_iteration) < 1:
+                    last_iteration_relevance = 1
+                else:
+                    last_iteration_relevance = np.sum(last_iteration)/len(last_iteration)
                 n_last = 386
                 if self.N*0.1 > n_last:
                     n_last = round(self.N*0.1)
@@ -254,17 +257,18 @@ class ScreenScenario:
                         self.wss_bir = 1 - self.seen_docs / self.N
                         self.recall_bir = self.get_recall()
                     if nrs is True:# (self.wss_nrs is None or self.wss_hyper is None) and nrs is True:
-                        self.n_remaining=self.N - self.seen_docs
-                        Xs = np.cumsum(np.array(self.ratings[::-1]))
-                        ns = np.arange(len(self.ratings))
-                        hypotheticals = vgen_hypo(Xs, self.r_seen, self.recall_target)
-                        prob_target = hypergeom.cdf(Xs, self.n_remaining+ns, hypotheticals, ns+1)
-                        self.min_prob_target = prob_target.min()
-                        
-                        if self.min_prob_target < 1-self.alpha and self.wss_nrs is None:
-                            self.wss_nrs = 1 - self.seen_docs / self.N
-                            self.recall_nrs = self.get_recall()
-                        self.nr_prob_target_path.append(self.min_prob_target)
+                        if len(self.ratings)>0:
+                            self.n_remaining=self.N - self.seen_docs
+                            Xs = np.cumsum(np.array(self.ratings[::-1]))
+                            ns = np.arange(len(self.ratings))
+                            hypotheticals = vgen_hypo(Xs, self.r_seen, self.recall_target)
+                            prob_target = hypergeom.cdf(Xs, self.n_remaining+ns, hypotheticals, ns+1)
+                            self.min_prob_target = prob_target.min()
+
+                            if self.min_prob_target < 1-self.alpha and self.wss_nrs is None:
+                                self.wss_nrs = 1 - self.seen_docs / self.N
+                                self.recall_nrs = self.get_recall()
+                            self.nr_prob_target_path.append(self.min_prob_target)
                 time_checking=time.time()-t0
             if self.wss_nrs is None:
                 self.wss_nrs = 0
@@ -325,10 +329,6 @@ class ScreenScenario:
                 self.recall_hyper = self.get_recall()
                 self.wss_hyper = 1 - self.seen_docs / self.N
             
-            if self.get_recall() > self.recall_target and self.wss_pf is None:
-                self.recall_pf = self.get_recall()
-                self.wss_pf = 1 - self.seen_docs / self.N                
-
         return  
             
     def __str__(self):

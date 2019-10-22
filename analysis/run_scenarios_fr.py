@@ -4,11 +4,13 @@ import rapid_review as rr
 import os
 import matplotlib.pyplot as plt
 import importlib
+from functools import partial
 from sklearn.svm import SVC, OneClassSVM
 import argparse
 
 parser = argparse.ArgumentParser(description="run ML systematic review scenarios")
 parser.add_argument('iterations', type=int)
+parser.add_argument('-p', type=int, default=0)
 args = parser.parse_args()
 
 datasets = ["Hall","Kitchenham","Radjenovic","Wahono"]
@@ -41,11 +43,20 @@ for name, group in frdf.groupby('review'):
         ss = rr.ScreenScenario(
             df, models, s, [50, 100, 200], name
         )
-        for i in range(iterations):
-            print(i)
-            r = ss.screen(i, True)
-            if r is not None:
-                results.append(r)
+        if args.p:
+            from multiprocessing import Pool
+            def simulate_screening_parallel(i,ss):
+                return ss.screen(i, True)
+            with Pool(args.p) as pool:
+                results.append(pool.map(partial(simulate_screening_parallel, ss=ss), list(range(iterations))))
+            print(results)
+            break
+        else:
+            for i in range(iterations):
+                print(i)
+                r = ss.screen(i, True)
+                if r is not None:
+                    results.append(r)
 
 results_df = pd.DataFrame.from_dict(results)
 results_df.to_csv('../results/results_fr.csv', index=False)
