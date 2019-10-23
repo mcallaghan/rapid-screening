@@ -90,8 +90,6 @@ for name, group in cohen_db.groupby('review'):
                 if r is not None:
                     results.append(r)
 
-    break
-
 if args.mpi:
     results_df = pd.DataFrame.from_dict(results)
     results_df.to_csv(f'../results/results_{rank}.csv', index=False)
