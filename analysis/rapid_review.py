@@ -155,7 +155,7 @@ class ScreenScenario:
         self.reset()
         ## Do the random sample
         if s > self.df.shape[0]*0.5:
-            s = self.df.shape[0]*0.5
+            s = int(round(self.df.shape[0]*0.5))
             #print(f"skipping sample {s}, as it is more than 50% of the data")
             #return {}
             #ignore_fields = ["df", "X", "unseen_p"]
