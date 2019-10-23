@@ -69,7 +69,8 @@ for name, group in df.groupby('review'):
             rank = comm.Get_rank()
             stat = MPI.Status()
             r = ss.screen(rank, True)
-            results.append(r)
+            if r is not None:
+                results.append(r)
         else:
             for i in range(iterations):
                 print(i)

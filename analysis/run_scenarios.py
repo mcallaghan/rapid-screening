@@ -82,17 +82,19 @@ for name, group in cohen_db.groupby('review'):
             rank = comm.Get_rank()
             stat = MPI.Status()
             r = ss.screen(rank, True)
-            results.append(r)
+            if r is not None:
+                results.append(r)
         else:
             for i in range(iterations):
                 print(i)
                 r = ss.screen(i, True)
-                if r is not None:
-                    results.append(r)
+                if r is not None: 
+                   results.append(r)
 
 if args.mpi:
     results_df = pd.DataFrame.from_dict(results)
     results_df.to_csv(f'../results/results_{rank}.csv', index=False)
-else:                    
+else:
+    results = [r for r in results if r is not None]
     results_df = pd.DataFrame.from_dict(results)
     results_df.to_csv('../results/results.csv', index=False)

@@ -109,7 +109,7 @@ class ScreenScenario:
             #stop_words="english",tokenizer=tokenize
         ).fit_transform(df['x'])
 
-        clf = IsolationForest()
+        clf = IsolationForest(behaviour="new")
         clf.fit(self.X)
         self.df['outlying'] = clf.predict(self.X)
 
@@ -155,8 +155,12 @@ class ScreenScenario:
         self.reset()
         ## Do the random sample
         if s > self.df.shape[0]*0.5:
-            print(f"skipping sample {s}, as it is more than 50% of the data")
-            return
+            s = df.shape[0]*0.5
+            #print(f"skipping sample {s}, as it is more than 50% of the data")
+            #return {}
+            #ignore_fields = ["df", "X", "unseen_p"]
+            #result = {k: v for k, v in self.__dict__.items() if k not in ignore_fields}
+
         sids = random.sample(list(self.df.index), s)
         self.df.loc[sids,'seen'] = 1
         self.seen_docs = s
