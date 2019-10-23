@@ -109,7 +109,7 @@ class ScreenScenario:
             #stop_words="english",tokenizer=tokenize
         ).fit_transform(df['x'])
 
-        clf = IsolationForest(behaviour="new")
+        clf = IsolationForest(behaviour="new", contamination="auto")
         clf.fit(self.X)
         self.df['outlying'] = clf.predict(self.X)
 
@@ -155,7 +155,7 @@ class ScreenScenario:
         self.reset()
         ## Do the random sample
         if s > self.df.shape[0]*0.5:
-            s = df.shape[0]*0.5
+            s = self.df.shape[0]*0.5
             #print(f"skipping sample {s}, as it is more than 50% of the data")
             #return {}
             #ignore_fields = ["df", "X", "unseen_p"]
@@ -283,6 +283,9 @@ class ScreenScenario:
             if self.wss_bir_ci is None:
                 self.wss_bir_ci = 0
                 self.recall_bir_ci = 1
+            if self.wss_hyper is None:
+                self.wss_hyper = 0
+                self.recall_hyper = 1
             
             for ih in self.irrelevant_heuristic:
                 if getattr(self, f'wss_ih_{ih}') is None:
