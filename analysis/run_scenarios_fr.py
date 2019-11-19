@@ -57,7 +57,7 @@ for name, group in frdf.groupby('review'):
             stat = MPI.Status()
             r = ss.screen(rank, True)
             if r is not None:
-                results.append(r)
+                pythonresults.append(r)
         else:
             for i in range(iterations):
                 print(i)

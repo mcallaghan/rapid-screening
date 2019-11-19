@@ -80,7 +80,7 @@ for name, group in df.groupby('review'):
 
 if args.mpi:
     results_df = pd.DataFrame.from_dict(results)
-    results_df.to_csv(f'../results/results_{rank}.csv', index=False)
+    results_df.to_csv(f'../results/results_pb_copd_{rank}.csv', index=False)
 else:                    
     results_df = pd.DataFrame.from_dict(results)
-    results_df.to_csv('../results/results.csv', index=False)
+    results_df.to_csv('../results/results_pb_copd.csv', index=False)

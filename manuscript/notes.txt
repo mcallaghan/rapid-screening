@@ -1,0 +1,8 @@
+11,23,25,31,40,45,48,49,58
+Wallace2010 - Semiautomated screening, 
+Jonnalagadda2013 - A New Iterative Method to Reduce Workload in the Systematic Review Process,  
+Wallace2010, 
+Shemilt2013, 
+Ma2007, 
+Miwa2014,
+ Wallace2012, Wallace2012, Wallace2011
