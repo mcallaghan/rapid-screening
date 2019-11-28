@@ -308,6 +308,7 @@
 
 	
 	However, the estimation of the BIR fails to correctly take into account sampling uncertainty \footnote{Although Shemilt et al. \cite{Shemilt2014} employ a method  to choose a sample size based on uncertainty, they fail to acknowledge the potential implications for recall of their choices. Their margin of error of 0.0025 and observed proportion of relevant studies of 0.0005 translate to estimates of $400 \pm 251$ relevant results. To reduce the margin of error to $\pm 5\%$ of estimated relevant studies, they would have had to screen 638,323 out of 804,919 results. See the notebook https://github.com/mcallaghan/rapid-screening/blob/master/analysis/bir_theory.ipynb that accompanies this paper for a detailed discussion}. 
+	This uncertainty is crucial, as errors can have severe consequences. If the estimated number of relevant documents is even one unit above the true value, then no work savings will be achieved. If the 
 	Figure \ref{bir-sampling} shows the predicted number of documents after each document drawn for 50 random samples of 2,000 documents from 20,000 documents (where 5\% of documents are relevant). 
 	Depending on the luck of the draw, one might estimate the true number of documents as being
 	\begin{enumerate}
@@ -318,12 +319,28 @@
 	Where the yellow line is above the upper grey line, identification of 95\% of the estimated number of studies would be impossible, and no work would be saved. In the example, this is the case for about 47\% of random draws of 2000 documents. Where it is below the lower grey line, the estimated number of relevant documents is estimated to be less than 95\% of the true number, such that the stopping criterion would give a lower recall than desired. For the example, this would occurr in about 32\% of random draws.
 	This shows how even after taking a large sample, baseline estimation inevitably offers poor reliability, both in terms of recall and in work saved.
 
-	\begin{figure}
-	\includegraphics[width=\linewidth]{../images/bir_sampling_noci.png}
-	\caption{Uncertainty in estimating the baseline inclusion rate. For 50 random samples of 2,000 documents from 20,000 documents, we show the estimated number of relevant documents, after each document is drawn. The two horizontal grey  lines correspond to the actual number of relevant documents, and to $\frac{100}{0.95}$\% of relevant documents.
-		\label{bir-sampling}
-	}
-\end{figure}
+
+	\begin{figure*}
+	\centering
+	\begin{subfigure}[b]{0.475\textwidth}   
+		\centering 
+		\includegraphics[width=\textwidth]{../images/bir_errors}
+		\caption[]%
+		{{\small Error types after 1,000 documents \\}}    
+		\label{fig:bir_error}
+	\end{subfigure}
+	\hfill
+	\begin{subfigure}[b]{0.475\textwidth}   
+		\centering 
+		\includegraphics[width=\textwidth]{../images/bir_error_distribution}
+		\caption[]%
+		{{\footnotesize Error types across sample sizes}}    
+		\label{fig:bir_error_distribution}
+	\end{subfigure}
+
+	\caption{\small Distribution of recall and work saved after each stopping criteria. Green dots show results for datasets with less than 1,000 documents, orange dots show datasets with 1,000 - 2,000 documents, and blue dots show datasets with more than 2,000 documents.} 
+	\label{recall-wss}
+\end{figure*}
 
 \begin{figure}
 	\includegraphics[width=\linewidth]{../images/proportions_1.png}
