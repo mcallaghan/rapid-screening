@@ -444,7 +444,7 @@ These last examples are promising developments, but fail to take into account th
 	\medskip
 	
 	\begin{figure}
-		\includegraphics[width=0.5\linewidth]{../images/flow}
+		\includegraphics[width=0.7\linewidth]{../images/flow}
 		\caption{A workflow for active learning in screening with a statistical stopping criterion}
 		\label{flow}
 	\end{figure}
@@ -524,22 +524,6 @@ These last examples are promising developments, but fail to take into account th
 
     \begin{figure*}
 	\centering
-	\begin{subfigure}[b]{0.475\textwidth}
-		\centering
-		\includegraphics[width=\textwidth]{../images/jointplot_bir}
-		\caption[Network2]%Example-Image
-		{{\small Baseline Sampling}}    
-		\label{fig:bir}
-	\end{subfigure}
-	\hfill
-	\begin{subfigure}[b]{0.475\textwidth}  
-		\centering 
-		\includegraphics[width=\textwidth]{../images/jointplot_ih_50}
-		\caption[]%
-		{{\small 50 consecutive irrelevant results}}    
-		\label{fig:ih_50}
-	\end{subfigure}
-	\vskip\baselineskip
 	\begin{subfigure}[b]{0.475\textwidth}   
 		\centering 
 		\includegraphics[width=\textwidth]{../images/jointplot_hyper}
@@ -554,6 +538,22 @@ These last examples are promising developments, but fail to take into account th
 		\caption[]%
 		{{\footnotesize Pseudorandom hypergeometric sampling}}    
 		\label{fig:nrs}
+	\end{subfigure}
+	\vskip\baselineskip
+	\begin{subfigure}[b]{0.475\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{../images/jointplot_bir}
+		\caption[Network2]%Example-Image
+		{{\small Baseline Sampling}}    
+		\label{fig:bir}
+	\end{subfigure}
+	\hfill
+	\begin{subfigure}[b]{0.475\textwidth}  
+		\centering 
+		\includegraphics[width=\textwidth]{../images/jointplot_ih_50}
+		\caption[]%
+		{{\small 50 consecutive irrelevant results}}    
+		\label{fig:ih_50}
 	\end{subfigure}
 	\vskip\baselineskip
 	\begin{subfigure}[b]{0.475\textwidth}   
@@ -578,6 +578,23 @@ These last examples are promising developments, but fail to take into account th
 
 \begin{figure*}
 	\centering
+		\begin{subfigure}[b]{0.475\textwidth}   
+		\centering 
+		\includegraphics[width=\textwidth]{../images/jointplot_burden_hyper}
+		\caption[]%
+		{{\small Hypergeometric sampling \\}}    
+		\label{fig:hyper_ab}
+	\end{subfigure}
+	\hfill
+	\begin{subfigure}[b]{0.475\textwidth}   
+		\centering 
+		\includegraphics[width=\textwidth]{../images/jointplot_burden_nrs.pdf}
+		\caption[]%
+		{{\footnotesize Pseudorandom hypergeometric sampling}}    
+		\label{fig:nrs_ab}
+	\end{subfigure}
+	\hfill
+	\vskip\baselineskip
 	\begin{subfigure}[b]{0.475\textwidth}
 		\centering
 		\includegraphics[width=\textwidth]{../images/jointplot_burden_bir}
@@ -594,14 +611,7 @@ These last examples are promising developments, but fail to take into account th
 		\label{fig:ih_50_ab}
 	\end{subfigure}
 	\vskip\baselineskip
-	\begin{subfigure}[b]{0.475\textwidth}   
-		\centering 
-		\includegraphics[width=\textwidth]{../images/jointplot_burden_hyper}
-		\caption[]%
-		{{\small Hypergeometric sampling \\}}    
-		\label{fig:hyper_ab}
-	\end{subfigure}
-	\hfill
+
 	\begin{subfigure}[b]{0.475\textwidth}   
 		\centering 
 		\includegraphics[width=\textwidth]{../images/jointplot_burden_ih_100}
@@ -609,14 +619,6 @@ These last examples are promising developments, but fail to take into account th
 		{{\small 100 consecutive irrelevant results }}    
 		\label{fig:ih_200_ab}		
 
-	\end{subfigure}
-	\vskip\baselineskip
-	\begin{subfigure}[b]{0.475\textwidth}   
-		\centering 
-		\includegraphics[width=\textwidth]{../images/jointplot_burden_nrs.pdf}
-		\caption[]%
-		{{\footnotesize Pseudorandom hypergeometric sampling}}    
-		\label{fig:nrs_ab}
 	\end{subfigure}
 	\hfill
 	\begin{subfigure}[b]{0.475\textwidth}   
@@ -632,13 +634,14 @@ These last examples are promising developments, but fail to take into account th
 \end{figure*}
 
 
-	The Heuristic stopping criteria, both for 50 consecutive irrelevant results (Figure \ref{fig:ih_50} - IH50), and for 200 irrelevant results (Figure \ref{fig:ih_200}) also perform unreliably. Although the mean work saved for IH50 is 41\%, the target is missed in 39\% of cases. The cases below the horizontal grey line indicate instances where work has been saved at the expense of achieving the recall target.
 	
-	Both the random sampling and the pseudorandom sampling criteria achieve the target threshold of 95\% in more than 95\% of cases. In fact, the pseudorandom sampling criterion  outperforms the random sampling criterion with respect to both recall and work savings. In theory, the pseudorandom sampling criteria is conservative if the assumption holds that documents chosen by machine learning are not less likely to be relevant than those chosen at random. Based on our experiments, this assumption seems reasonable, and accounts for the higher recall. Because the pseudorandom sampling criterion can flexibly choose its sample, whereas the random criterion has to wait for a random sample to be triggered, the criterion is also triggered earlier, as it can make use of more data. This accounts for the higher work savings.
+	Both the random sampling and the pseudorandom sampling criteria achieve the target threshold of 95\% in more than 95\% of cases. In fact, the pseudorandom sampling criterion  outperforms the random sampling criterion with respect to both recall and work savings, saving a mean of 17\% of the work compared to 15\%, and missing the target in only 0.95\% compared to 3.29\% of cases. In theory, the pseudorandom sampling criteria is conservative if the assumption holds that documents chosen by machine learning are not less likely to be relevant than those chosen at random. Based on our experiments, this assumption seems reasonable, and accounts for the higher recall. Because the pseudorandom sampling criterion can flexibly choose its sample, whereas the random criterion has to wait for a random sample to be triggered, the criterion is also triggered earlier, as it can make use of more data. This accounts for the higher work savings.
+	
+	The Heuristic stopping criteria, both for 50 consecutive irrelevant results (Figure \ref{fig:ih_50} - IH50), and for 200 irrelevant results (Figure \ref{fig:ih_200}) also perform unreliably. Although the mean work saved for IH50 is 41\%, the target is missed in 39\% of cases. The cases below the horizontal grey line indicate instances where work has been saved at the expense of achieving the recall target.
 	
 	\begin{figure}
 		\includegraphics[width=0.9\linewidth]{../images/wss_nrs}
-		\caption{Work saved for the pseudorandom sampling method in each dataset. Labels show the number of relevant documents and the total number of documents. The datasets are presented in order of the number of documents. The whiskers represent the 5th and 95th percentiles.}
+		\caption{Work saved for the pseudorandom sampling method in each dataset. Labels show the number of relevant documents and the total number of documents. The datasets are presented in order of the number of documents. The whiskers represent the 5th and 95th percentiles. The grey line shows work savings of 5\%. }
 		\label{wss}
 	\end{figure}
 	
@@ -684,9 +687,9 @@ These last examples are promising developments, but fail to take into account th
 	
 	To help explain the different work savings that were observed in our experiments, we show the distribution of work savings from our pseudorandom criterion for each dataset in figure \ref{wss}. In general, higher work savings are possible when the total number of documents is larger. However, in datasets with a low proportion of relevant documents, many documents need to be screened to achieve a high confidence that there are only few relevant documents remaining in the unseen ones. Therefore, smaller work savings are possible. 
 	
-	Figure \ref{H0paths} shows the recall and the probability of the null hypothesis for the best performing iteration of four datasets. Although the 95\% recall target is achieved very quickly in the Radjenovic dataset, the null hypothesis cannot be excluded until much later. This is because the dataset has only 47 relevant documents out of a population of 5,999. After the 95\% recall target was achieved, 45 out of 47 relevant documents had been seen and 5,029 documents remained. The null hypothesis was therefore that 3 or more of these 5,029 documents were relevant, which requires a lot of evidence to disprove. The burden of proof was smaller in the case of the Proton Beam dataset: at the point that the 95\% recall threshold was reached, the null hypothesis to disprove was that 13 out of 3,369 remaining documents were relevant. 
+	Figure \ref{H0paths} shows the recall and the probability of the null hypothesis for the best performing iteration of four datasets. Although the 95\% recall target is achieved very quickly in the Radjenovic dataset, the null hypothesis cannot be excluded until much later. This is because the dataset has only 47 relevant documents out of a population of 5,999. After the 95\% recall target was achieved, 45 out of 47 relevant documents had been seen and 5,029 documents remained. The null hypothesis was therefore that 3 or more of these 5,029 documents were relevant, which requires a lot of evidence to disprove. The burden of proof was smaller in the case of the Proton Beam dataset: at the point that the 95\% recall threshold was reached, the null hypothesis to disprove was that a minimum of 13 out of 3,369 remaining documents were relevant. 
 	
-	The Statins and Triptans datasets show how the criterion performs when the machine learning model has performed poorly in predicting relevant results. In each case, 95\% recall is achieved with close to 20\% of documents remaining. With fewer documents remaining, it takes less screening to rule out the possibility that the number of relevant documents left is incompatible with the achievement of the recall target.
+	The Statins and Triptans datasets show how the criterion performs when the machine learning model has performed poorly in predicting relevant results. In each case, 95\% recall is achieved with close to 20\% of documents remaining. With fewer documents remaining, it takes fewer screening decisions to rule out the possibility that the number of relevant documents left is incompatible with the achievement of the recall target.
 	
 	\section*{Discussion}
 	
@@ -694,11 +697,11 @@ These last examples are promising developments, but fail to take into account th
 	
 	Different use cases for machine learning enhanced screening may also carry different requirements for recall, or different tolerances for uncertainty. These can be flexibly accommodated within our stopping criterion. Importantly, the ability to make probabilistic statements about the chance of achieving a given recall target makes it possible to clearly communicate the implications of using machine learning enhanced screening to readers and reviewers who are not machine learning specialists. This is extremely important in live systematic reviews. 
 	
-	Our criterion has the further advantage that it is independent of the choice or performance of the machine learning model. If a model performs badly at discerning relevant from irrelevant results, the only consequence will be that the work saved will be low. With other criteria this may result in poor recall. 
+	Our criteria have the further advantage that they are independent of the choice or performance of the machine learning model. If a model performs badly at discerning relevant from irrelevant results, the only consequence will be that the work saved will be low. With other criteria this may result in poor recall. 
 	When using machine learning for screening, poor recall can result in biased results, while low work savings represent no loss to the reviewer as compared to not using machine learning.
 	
 	So far, systematic review standards have no way of accommodating screening with machine learning. 
-	We hope that the reliability and clarity of reporting offered by our stopping criterion make them suitable for incorporation into standards, so that machine learning for systematic review screening can fulfil its promise of reducing workload and making more ambitious reviews tractable.
+	We hope that the reliability and clarity of reporting offered by our stopping criteria make them suitable for incorporation into standards, so that machine learning for systematic review screening can fulfil its promise of reducing workload and making more ambitious reviews tractable.
 	
 	\section*{Conclusion}
 	
