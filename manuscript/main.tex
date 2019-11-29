@@ -101,7 +101,7 @@
 			%%                                          %%
 			%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 			
-			\title{Statistical Stopping Criteria for Active Learning in Systematic Review Screening}
+			\title{Robust Statistical Stopping Criteria for Automated Screening in Systematic Reviews}
 			
 			%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 			%%                                          %%
@@ -286,7 +286,7 @@
 	
 	This study proposes a system for estimating the recall based on random sampling of remaining documents. 
 	We use a simple statistical method to iteratively test a null hypothesis that the recall achieved is less than a given target recall. If the hypothesis can be rejected, we conclude that the recall target has been achieved with a given confidence level and screening can be stopped.
-	This allows AL users to predefine a target in terms of uncertainty and recall, so that they can make transparent, easily communicable statements like ``There is a <5\% chance that we achieve a recall under 95\%''.
+	This allows AL users to predefine a target in terms of uncertainty and recall, so that they can make transparent, easily communicable statements like ``A recall of more than 95\% was achieved with a confidence of 95\%''.
 	
 	The information retrieval literature discusses similar stopping criteria for ranking algorithms like BM25 and variants \cite{DiNunzio2018, Yu2019}. However, the estimators they use to determine the recall rely on the specific ranking functions and depend on their search input. Therefore, the quality of the estimation depends on the adequacy of the model. Our approach, on the contrary, is independent of model choice or model performance. 
 	
@@ -305,19 +305,15 @@
 	The BIR is used to estimate the number of relevant documents in the whole dataset. 
 	Reviewers continue to screen until this number, or a proportion of it corresponding to the desired level of recall, is reached.
 	
-
 	
-	However, the estimation of the BIR fails to correctly take into account sampling uncertainty \footnote{Although Shemilt et al. \cite{Shemilt2014} employ a method  to choose a sample size based on uncertainty, they fail to acknowledge the potential implications for recall of their choices. Their margin of error of 0.0025 and observed proportion of relevant studies of 0.0005 translate to estimates of $400 \pm 251$ relevant results. To reduce the margin of error to $\pm 5\%$ of estimated relevant studies, they would have had to screen 638,323 out of 804,919 results. See the notebook https://github.com/mcallaghan/rapid-screening/blob/master/analysis/bir_theory.ipynb that accompanies this paper for a detailed discussion}. 
-	This uncertainty is crucial, as errors can have severe consequences. If the estimated number of relevant documents is even one unit above the true value, then no work savings will be achieved. If the 
-	Figure \ref{bir-sampling} shows the predicted number of documents after each document drawn for 50 random samples of 2,000 documents from 20,000 documents (where 5\% of documents are relevant). 
-	Depending on the luck of the draw, one might estimate the true number of documents as being
-	\begin{enumerate}
-		\item much higher than the true value, meaning that the stopping criterion would never be reached - and no work could be saved, or;
-		\item much lower than the true value, meaning that the stopping criterion would be reached before the desired level of recall was actually achieved
-	\end{enumerate}
+	However, the estimation of the BIR fails to correctly take into account sampling uncertainty \footnote{Although Shemilt et al. \cite{Shemilt2014} employ a method  to choose a sample size based on uncertainty, they fail to acknowledge the potential implications for recall of their choice. Their margin of error of 0.0025 and observed proportion of relevant studies of 0.0005 translate to estimates of $400 \pm 451$ relevant results. To reduce the margin of error to $\pm 5\%$ of estimated relevant studies, they would have had to screen 638,323 out of 804,919 results. See the notebook \url{https://github.com/mcallaghan/rapid-screening/blob/master/analysis/bir_theory.ipynb} that accompanies this paper for a detailed discussion}. 
+	This uncertainty is crucial, as errors can have severe consequences. If the estimated number of relevant documents is even one unit above the true value, then no work savings will be achieved. If the number of relevant documents is underestimated, then the recall achieved will be less than 100\%.
 	
-	Where the yellow line is above the upper grey line, identification of 95\% of the estimated number of studies would be impossible, and no work would be saved. In the example, this is the case for about 47\% of random draws of 2000 documents. Where it is below the lower grey line, the estimated number of relevant documents is estimated to be less than 95\% of the true number, such that the stopping criterion would give a lower recall than desired. For the example, this would occurr in about 32\% of random draws.
-	This shows how even after taking a large sample, baseline estimation inevitably offers poor reliability, both in terms of recall and in work saved.
+	The number of relevant documents drawn without replacement from a finite sample of documents follows the hypergeometric distribution. 
+	Figure \ref{fig:bir_error} shows the distribution of the predicted number of documents after drawing 1,000 documents from a total of 20,000 documents, where 500 documents (2.5\%) are relevant. The left shaded portion of the graph shows all the cases where the recall will be less than 95\%. This occurs 35.91\% of the time. The right shaded portion of the graph shows the cases where the number of relevant documents is overestimated and no work savings could be made. This occurs 46.24\% of the time. In only 17.85\% of cases can work savings be achieved while still achieving a recall of at least 95\%. 
+	
+	Figure \ref{fig:bir_error_distribution} shows the probability distribution of these errors according to the sample size. Even in very large samples both types of error remain frequent).
+	This shows how baseline estimation inevitably offers poor reliability, both in terms of recall and in work saved.
 
 
 	\begin{figure*}
@@ -338,8 +334,8 @@
 		\label{fig:bir_error_distribution}
 	\end{subfigure}
 
-	\caption{\small Distribution of recall and work saved after each stopping criteria. Green dots show results for datasets with less than 1,000 documents, orange dots show datasets with 1,000 - 2,000 documents, and blue dots show datasets with more than 2,000 documents.} 
-	\label{recall-wss}
+	\caption{\small Distribution of under- or over-estimation errors using the BIR sampling method in a dataset of 20,000 documents of which 500 are relevant. Panel (a) shows the probability distribution of the estimated number of relevant documents after a sample of 1,000 documents. Panel (b) shows the probability of each type of error according to the sample size.} 
+	\label{bir-sampling}
 \end{figure*}
 
 \begin{figure}
@@ -532,12 +528,13 @@ These last examples are promising developments, but fail to take into account th
 	
 	%As a last step, we explain the factors that increase or decrease the performance of our criteria, using a simple regression model.
 	
+	All computational steps required to reproduce this analysis are documented online at \url{https://github.com/mcallaghan/rapid-screening}.
+	
 	\section*{Results}
 	
 	Figure \ref{recall-wss} shows the actual recall and work savings achieved when each stopping criteria has been satisfied. 
 	For comparison, we also include the results that would have been achieved with \textit{a priori} knowledge of the data, that is, the work saved when the 95\% recall target was actually reached. In a live systematic review, reviewers would never know when this had been reached, but these are the work savings most often reported in machine learning for systematic review screening studies.
-		
-	The baseline sampling criteria (Figure \ref{fig:bir}) misses the 95\% recall target in 39.67\% of cases, while the most common work saving is 0\%. This is in line with our expectations that, due to random sampling error, the expected number of documents will often be over-estimated or under-estimated, resulting in zero work savings or poor recall.
+	
 
     \begin{figure*}
 	\centering
@@ -654,6 +651,8 @@ These last examples are promising developments, but fail to take into account th
 	
 	Both the random sampling and the pseudorandom sampling criteria achieve the target threshold of 95\% in more than 95\% of cases. In fact, the pseudorandom sampling criterion  outperforms the random sampling criterion with respect to both recall and work savings, saving a mean of 17\% of the work compared to 15\%, and missing the target in only 0.95\% compared to 3.29\% of cases. In theory, the pseudorandom sampling criteria is conservative if the assumption holds that documents chosen by machine learning are not less likely to be relevant than those chosen at random. Based on our experiments, this assumption seems reasonable, and accounts for the higher recall. Because the pseudorandom sampling criterion can flexibly choose its sample, whereas the random criterion has to wait for a random sample to be triggered, the criterion is also triggered earlier, as it can make use of more data. This accounts for the higher work savings.
 	
+	The baseline sampling criteria (Figure \ref{fig:bir}) misses the 95\% recall target in 39.67\% of cases, while the most common work saving is 0\%. This is in line with our expectations that, due to random sampling error, the expected number of documents will often be over-estimated or under-estimated, resulting in zero work savings or poor recall.
+	
 	The Heuristic stopping criteria, both for 50 consecutive irrelevant results (Figure \ref{fig:ih_50} - IH50), and for 200 irrelevant results (Figure \ref{fig:ih_200}) also perform unreliably. Although the mean work saved for IH50 is 41\%, the target is missed in 39\% of cases. The cases below the horizontal grey line indicate instances where work has been saved at the expense of achieving the recall target.
 	
 	\begin{figure}
@@ -700,7 +699,7 @@ These last examples are promising developments, but fail to take into account th
 		\label{H0paths}
 	\end{figure*}
 	
-	In figure \ref{recall-burden} we rescale the x axis, calling it additional burden, which is simply the work saved when the criterion is triggered subtracted from the work saved when the recall target was actually achieved. This measure indicates whether the stopping criterion was triggered too early (positive values), or too late (negative values). The figure directly highlights the tradeoffs involved in deciding when to stop screening. 
+	In figure \ref{recall-burden} we rescale the x axis, calling it additional burden, which is simply the work saved when the criterion is triggered minus the work saved when the recall target was actually achieved. This measure indicates whether the stopping criterion was triggered too early (negative values), or too late (positive values). The figure directly highlights the tradeoffs involved in deciding when to stop screening: For our criteria, there is mostly a small additional burden which comes with the necessity to make sure the desired recall target has been reached and reject the null hypothesis that this has not been the case. For the other criteria, there are many cases in which additional burden is negative, i.e. the criterion has been triggered too early. In these cases, however, the desired recall is hardly ever reached.
 	
 	To help explain the different work savings that were observed in our experiments, we show the distribution of work savings from our pseudorandom criterion for each dataset in figure \ref{wss}. In general, higher work savings are possible when the total number of documents is larger. However, in datasets with a low proportion of relevant documents, many documents need to be screened to achieve a high confidence that there are only few relevant documents remaining in the unseen ones. Therefore, smaller work savings are possible. 
 	
@@ -710,7 +709,7 @@ These last examples are promising developments, but fail to take into account th
 	
 	\section*{Discussion}
 	
-	Our results show that it is possible to use machine learning to achieve a given level of recall with a given level of confidence. The tradeoff for achieving recall reliably is that the work saving achieved is less than the maximum possible work saving. However, for large datasets with a significant proportion of relevant documents, the additional effort required to satisfy the criterion will be small. This makes the approach well suited to broad topics with lots of literature. In other words, it is precisely where machine learning will be most useful that the additional effort will be small.
+	Our results show that it is possible to use machine learning to achieve a given level of recall with a given level of confidence. The tradeoff for achieving recall reliably is that the work saving achieved is less than the maximum possible work saving. However, for large datasets with a significant proportion of relevant documents, the additional effort required to satisfy the criterion will be small compared to the work saved by using machine learning. This makes the approach well suited to broad topics with lots of literature. In other words, it is precisely where machine learning will be most useful that the additional effort will be small.
 	
 	Different use cases for machine learning enhanced screening may also carry different requirements for recall, or different tolerances for uncertainty. These can be flexibly accommodated within our stopping criterion. Importantly, the ability to make probabilistic statements about the chance of achieving a given recall target makes it possible to clearly communicate the implications of using machine learning enhanced screening to readers and reviewers who are not machine learning specialists. This is extremely important in live systematic reviews. 
 	
@@ -734,7 +733,7 @@ These last examples are promising developments, but fail to take into account th
 	MC designed the research and conducted the experiments. FMH contributed to the development of the statistical basis for the stopping criterion. Both authors wrote and edited the manuscript.
 	
 	\section*{Acknowledgements}
-	Max Callaghan is supported by a PhD scholarship from the Heinrich Böll Foundation
+	Max Callaghan is supported by a PhD scholarship from the Heinrich Böll Foundation. Finn M\"{u}ller-Hansen is supported by the BMBF project Strategic Scenario Analysis (START).
 		
 	\bibliography{mendeley}
 	\bibliographystyle{vancouver}
