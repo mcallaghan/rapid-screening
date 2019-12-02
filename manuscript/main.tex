@@ -194,7 +194,7 @@
 				Machines and humans  work together, with humans providing training data, and the machine optimising the documents that the humans screen. This enables the identification of all relevant documents after viewing only a fraction of the total documents. 
 				However, current approaches lack robust stopping criteria, so that reviewers do not know when they have seen all or a certain proportion of relevant documents. This means that such systems are hard to implement in live reviews. 
 				This paper introduces a workflow with robust and flexible statistical stopping criteria, which offer real work reductions on the basis of a given confidence level of reaching a given recall.
-				The stopping criteria are shown on test datasets to achieve a reliable level of recall, while still providing consistent work reductions, while other methods proposed are shown to provide inconsistent recall and work reductions across datasets.
+				The stopping criteria are shown on test datasets to achieve a reliable level of recall, while still providing work reductions of on average 17\%. Other methods proposed previously are shown to provide inconsistent recall and work reductions across datasets.
 				
 			\end{abstract}
 			
@@ -280,8 +280,8 @@
 		\item \textbf{Pragmatic criteria:} Reviewers stop when they run out of time \cite{miwa2014}. 
 	\end{itemize}
 	
-	We show in this paper how existing criteria are inadequate.
-	We demonstrate with several previously used datasets that their inadequacy lies in the unreliability - particularly across different domains, or datasets with different properties \cite{OMara-Eves2015} - both of the work saved and the recall achieved.  
+	We review these methods in the following section and discuss their theoretical limitations. They are then tested on several previous systematic review datasets.
+	We demonstrate theoretically and with our experimental results, that these methods can not deliver consistent levels of work savings or recall - particularly across different domains, or datasets with different properties \cite{OMara-Eves2015}.  
 	Without the reliable or reportable achievement of a desired level of recall, deployment of AL systems in live reviews remains challenging.
 	
 	This study proposes a system for estimating the recall based on random sampling of remaining documents. 
@@ -292,12 +292,10 @@
 	
 	In the remainder of the paper, we first discuss in detail the shortcomings of existing stopping criteria. Then, we introduce our new criterion based on a hypergeometric test. We evaluate our stopping criteria, and compare their performance with heuristic and sampling based criteria on real-world systematic review datasets on which AL systems have previously been tested \cite{Cohen2006, Yu2019, Terasawa2009, Castaldi2009}.
 	
-	\section*{Methods}
+	\section*{Methods Review}
 
-	
-	%\subsection*{Existing Stopping Criteria for Active Learning}
-	
-	We start by explaining the sampling and heuristic based stopping criteria and showing their methodological weaknesses. 
+
+	We start by explaining the sampling and heuristic based stopping criteria and discussing their methodological limitations. 
 	
 	\subsection*{Sampling Based Stopping Criteria}
 	
@@ -371,6 +369,7 @@ Jonnalagadda and Petitti \cite{Jonnalagadda2013} note that ``the reviewer can el
 Yu and Menzies \cite{Yu2019} adopt a more complicated stopping criterion which allows the user to target a specific level of recall. However, reviewers are not given the opportunity to specify a confidence level, and for two of the four datasets in which they tested their criteria, the median achieved recall at a stopping criteria targeting 95\% recall was below 95\%. Di Nunzio \cite{DiNunzio2018} also present an innovative stopping criteria, but it does not take into account uncertainty, and produces results \textit{near} a target recall threshold, rather than above it in a reliable proportion of cases. 
 These last examples are promising developments, but fail to take into account the needs of live systematic reviews, where the reliability of and ease of communication about recall are paramount.
 
+\subsection*{Methods}
 
 \subsection*{A Statistical Stopping Criterion for Active Learning}
 
@@ -409,42 +408,6 @@ These last examples are promising developments, but fail to take into account th
 	
 	
 	
-	
-	%%%%%%%%%%%
-%	
-%	We calculate a hypothetical value $\hat{K}$
-%
-%	Our aim is to formulate a stopping criterion such that a recall of $\tau$ has been reached with confidence level $\alpha$.
-%	To achieve this, we formulate a hypothesis test:
-%	We first calculate the number $\hat{n}$ of relevant documents that can maximally remain in the unseen documents to achieve a given recall target. The recall is defined as the ratio of seen relevant documents over all relevant documents
-%
-%	with the total number of seen relevant documents $\rho$, the number of seen relevant documents at the time we start random sampling $\hat{\rho}$, and the remaining number of relevant documents in the unseen sample at the time random sampling starts $\tilde{n}$.
-%	Reorganization of this equation gives
-%	\begin{equation}
-%		\tilde{n} = \frac{\rho}{\tau} - \hat{\rho}.
-%	\end{equation}
-%	Because we need to use integers, we get the next largest integer given by the ceiling function $\lceil \cdot \rceil$:
-%
-%	The null-hypothesis to reject can then be formulated as:
-%	\begin{quote}
-%	$H_0$: There are $\hat{n}$ or more relevant documents remaining in the set of unseen documents.
-%	\end{quote}
-%	
-%	% notation here follows notation for scipy description of hypergeometric distribution
-%	% better use another notation more in line with the literature? -> literature seems to use very different notations
-%	
-%	In theory, we draw a random sample of $N$ documents, evaluate how many of them are relevant, and denote this number with $k$. We can estimate the probability that we observe $k$ or fewer relevant documents in a random draw of $N$ documents without replacement from a pool of $M$ documents, of which $n$ are relevant using the cumulative distribution function of the hypergeometric distribution.
-%This function is defined as the sum over the probability mass function of the hypergeometric distribution $p(x, M, n, N)$:
-%	\begin{equation}	
-%		 cdf(k, M, n, N) = \sum_{x \leq k} p(x, M, n, N) = \sum_{x \leq k} \frac{\binom{n}{x} \binom{M - n}{N - x}} {\binom{M}{N}},
-%		 \label{pfunc}
-%	\end{equation}
-%	where $\binom{a}{b}$ denote binomial coefficients. In our case, $M$ is the number of unseen documents before we start random sampling.
-%	
-%	We can reject the null hypothesis if the p-value $p = cdf(k,M,\hat{n},N)$ is smaller than $1 - \alpha$ [references to hypergeometric testing?, needs further argumentation?]. Because we are testing for the lower tail, this implies that we can be confident with a level $\alpha$ that the number of unseen relevant documents is lower than $\hat{n}$.
-%	
-%	In practice, we can draw random unseen documents repeatedly. After each draw, we calculate the p-value using the number of relevant documents $k$ and the number of randomly sampled documents $N$.
-%	We can stop the screening once a p-value $p < 1 - \alpha$ is reached.
 
 
 	\subsubsection*{Pseudo-random sampling}
@@ -462,48 +425,6 @@ These last examples are promising developments, but fail to take into account th
 		\label{flow}
 	\end{figure}
 
-	%\subsection*{Analysis}
-%	
-%	\begin{table}
-%		\begin{tabular}{p{0.15\linewidth} p{0.425\linewidth} p{0.425\linewidth}}
-%			Parameter & Description & Estimation \\
-%			\hline
-%			$ P  $ &  Total number of studies & \textit{Observed} \\
-%			$ S $ & Number of studies coded by humans & \textit{Observed} \\
-%			$ U $ & Number of studies not yet coded by humans & \textit{Observed} ($P - S$) \\
-%			$ \alpha $ & Acceptable uncertainty level & \textit{Given} \\
-%			$ \tau $ & Target recall threshold & \textit{Given} \\
-%			$ k $ & Number of relevant documents drawn & \\
-%			$ N $ & Number of randomly drawn documents & \textit{Observed} \\
-%			$ M $ & Number of remaining unseen documents before sampling & \\
-%			$ n $ & Number of relevant documents in sample & \\
-%			$ \hat{n} $ & Minimum number of relevant documents in sample that would mean the recall threshold had been reached  & \\
-%		\end{tabular}
-%		\caption{Parameters}
-%		\label{parameters}
-%	\end{table}
-
-	
-
-%
-%	
-%	Table \ref{parameters} shows the parameters, known, estimated, and given, available during the random sampling process and required to estimate recall. 
-%	Expanding on what was stated before, recall - at a given confidence threshold is a function of 1) the upper estimate of the relevance of remaining documents, 2) The estimated relevance of all documents in the dataset, 3) The proportion of documents not yet seen. 
-%	
-%	Figure \ref{sample-recall} shows the minimum estimated recall for a set of confidence intervals, along with the actual recall (in grey) for a case where 800 out of 2,000 documents have been reviewed, 2\% of remaining documents are relevant, and 20\% of all documents are relevant. 
-%	We see that after 95\% recall has actually been achieved, but before 100\% of documents have been been seen, we can be confident at each of the given confidence levels that 95\% of relevant documents have been identified. 
-%	All estimates of recall only reach 100\% after all documents have been seen, as it is not possible to exclude the possibility, at any given confidence level, that the proportion of relevant documents is greater than 0 \todo{Actually maybe this is possible if we work with whole numbers? How does that change things?}. 
-%	Figure \ref{sample-recall-variation} shows the various trajectories of a 95\% minimum recall (blue) and actual recall (grey) given the same paramaters for 200 random samples.
-%
-%	That the blue lines consistently meet a 95\% threshold to the right of the grey lines indicates that reviewers have to see more than 95\% of relevant documents in order to be confident that they have achieved their threshold. 
-%	We call the number of documents it is necessary to review to establish with confidence that reviewers have achieved 95\% recall after they have already achieved 95\% recall the \textit{additional burden}. 
-%	
-%	In figure \ref{additional-burden}, we investigate how the total number of documents and the proportion of relevant documents affect the additional burden \todo{Use the number of documents seen instead of p?}. We demonstrate the additional burden decreases \todo{how? Non-linearly?} with increasing total numbers of documents. With decreasing relevance of the remaining documents (holding the recall constant at 95\%, this means that fewer documents remain unseen), the additional burden increases. This implies that where the machine learning has more successfully identified documents and reduced burden, the additional burden required to establish the level of recall is higher. This is because the proportion of documents not seen is greater, so uncertainty around the relevance of that proportion has a greater impact on the estimation of recall.
-%
-%	When to move to random sampling remains an open question. Our current approach is to use the predicted relevance of the machine learning model as a guide. We calculate the [minimum/maximum] estimated recall based on observing the predicted relevance level in [x] random documents. If the estimated recall would be below the threshold, then we begin drawing random documents.
-%
-%	The stopping criteria explained here is 
-	
 	\subsection*{Evaluation}
 	
 	We evaluate each of the criteria discussed on real world test data, operationalising the heuristic stopping criteria with 50, 100, and 200 consecutive irrelevant records. We run 100 iterations on each dataset and record the following measures.
@@ -733,7 +654,7 @@ These last examples are promising developments, but fail to take into account th
 	MC designed the research and conducted the experiments. FMH contributed to the development of the statistical basis for the stopping criterion. Both authors wrote and edited the manuscript.
 	
 	\section*{Acknowledgements}
-	Max Callaghan is supported by a PhD scholarship from the Heinrich Böll Foundation. Finn M\"{u}ller-Hansen is supported by the BMBF project Strategic Scenario Analysis (START).
+	Max Callaghan is supported by a PhD scholarship from the Heinrich Böll Foundation. Finn M\"{u}ller-Hansen acknowledges funding from the German Federal Ministry of Research and Education within the Strategic Scenario Analysis (START) project (grant reference: 03EK3046B).
 		
 	\bibliography{mendeley}
 	\bibliographystyle{vancouver}
