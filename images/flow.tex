@@ -28,6 +28,12 @@
 		double copy shadow,
 		fill=blue!30
 	},
+	end/.style={
+		base,
+		shape=ellipse,
+		fill={rgb:red,1;green,2;blue,5},
+		text=white
+	}
 }
 \begin{document}    
 % Drawing part, node distance is 1.5 cm and every node
@@ -46,20 +52,22 @@ every join/.style={norm},   % Default linetype for connecting boxes
   \node (sample)  [screen, join]  {Screen random documents};
   \node (model) [computer, join, left=of sample]  {Train model,\\ predict relevance};
   \node (screenrel)  [screen, below of =sample]  {Screen most \\ relevant documents};
-  \node (stopscreen) [decision, join] {Irrelevant?};
+  \node (stopscreen) [decision, join] {Recall unlikely $<$ threshold?};
   
   \node (screenr2) [screen, join]  {Screen random documents};
   
-  \node (recall) [decision, join] {Recall $>$ threshold?};
+  \node (recall) [decision, join] {Recall unlikely $<$ threshold?};
   
-    	\node (e1) [form, right=of stopscreen, xshift=-15mm] { $p < 1-\frac{\alpha}{2}$ };
+    	\node (e1) [form, right=of stopscreen, xshift=-10mm] { $p < 1-\frac{\alpha}{2}$ };
   
 	%\node (sform) [form, right=of screenr2, xshift=-15mm] { Estimate $\hat{p}U$ };
   
-  \node (rform) [form, right=of recall, xshift=-15mm] { $p < 1-\alpha $ };
+  \node (rform) [form, right=of recall, xshift=-10mm] { $p < 1-\alpha $ };
   
-  \node (reldocs) [multidoc, below of=recall, xshift=20mm, yshift=-8mm]  {Relevant documents};
-  \node (irreldocs) [multidoc, fill=blue!5, below of=recall, xshift=-20mm, yshift=-8mm]  {Irrelevant documents};
+  \node (stop) [end, below of=recall, yshift=-10mm] {Stop};
+  
+  \node (reldocs) [multidoc, below of=stop, xshift=20mm, yshift=-8mm]  {Relevant documents};
+  \node (irreldocs) [multidoc, fill=blue!5, below of=stop, xshift=-20mm, yshift=-8mm]  {Irrelevant documents};
   %\node 
   
   
@@ -71,17 +79,23 @@ every join/.style={norm},   % Default linetype for connecting boxes
   
   \node [coord, left=of recall, xshift=-45mm] (c3)  {}; %\cmark{1} 
   
- \path (stopscreen.west) to node [very near start, yshift=1em] {$n$} (c1); 
+ \path (stopscreen.west) to node [very near start, yshift=1em] {$no$} (c1); 
  
  	\draw [o->,norm] (stopscreen.west) -- (c1) |-  (c2) -- (model.north);
  	
-  \path (recall.west) to node [very near start, yshift=1em] {$n$} (c3); 
+  \path (recall.west) to node [very near start, yshift=1em] {$no$} (c3); 
+  
+    \path (stopscreen.south) to node [very near start, yshift=-0.5em, xshift=1em] {$yes$} (screenr2.north); 
+    
+    \path (recall.south) to node [very near start, yshift=-0.5em, xshift=1em] {$yes$} (stop.north); 
  
  %\draw [o->,norm] (recall.west) -- (c3) |-  (c2) -- (model.north);
  \draw [o->,norm] (recall.west) -- (c3) |-  (screenr2.west);
  
- \draw [o->,norm] (recall.south) -- (reldocs);
- \draw [o->,norm] (recall.south) -- (irreldocs);
+ \draw [o->,norm] (recall.south) -- (stop);
+ 
+ \draw [o->,norm] (stop.south) -- (reldocs);
+ \draw [o->,norm] (stop.south) -- (irreldocs);
  	
  	
  	
