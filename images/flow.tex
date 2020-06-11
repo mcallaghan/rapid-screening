@@ -2,6 +2,7 @@
 % Author: Pavel Seda 
 \documentclass[border=10pt]{standalone}
 \usepackage{tikz}
+
 \usetikzlibrary{arrows.meta, shapes, chains, arrows, shadows}
 
 % Set up a few colours
@@ -39,6 +40,7 @@
 % Drawing part, node distance is 1.5 cm and every node
 % is prefilled with white background
 
+\resizebox{\textwidth}{!}{%
 \begin{tikzpicture}[
     >=triangle 60,              % Nice arrows; your taste may be different
 start chain=going below,    % General flow is top-to-bottom
@@ -102,4 +104,5 @@ every join/.style={norm},   % Default linetype for connecting boxes
  	
   
   \end{tikzpicture}
+}
 \end{document}
