@@ -1,0 +1,782 @@
+[1mdiff --git a/manuscript/main.tex b/manuscript/main.tex[m
+[1mindex b0474ba..0fb255b 100644[m
+[1m--- a/manuscript/main.tex[m
+[1m+++ b/manuscript/main.tex[m
+[36m@@ -71,10 +71,12 @@[m
+ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%[m
+ [m
+ \usepackage{todonotes}[m
+[32m+[m[32m\usepackage{bm}[m
+ \usepackage{graphicx}[m
+ \usepackage{amsmath}[m
+ \usepackage{url}[m
+ \usepackage{subcaption}[m
+[32m+[m[32m\usepackage{caption}[m
+ \usepackage{booktabs}[m
+ %\def\includegraphic{}[m
+ %\def\includegraphics{}[m
+[36m@@ -225,33 +227,33 @@[m
+ 		%\end{fmbox}% uncomment this for twcolumn layout[m
+ 		[m
+ 	\end{frontmatter}[m
+[31m-[m
+[31m-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%[m
+[31m-%%                                          %%[m
+[31m-%% The Main Body begins here                %%[m
+[31m-%%                                          %%[m
+[31m-%% Please refer to the instructions for     %%[m
+[31m-%% authors on:                              %%[m
+[31m-%% http://www.biomedcentral.com/info/authors%%[m
+[31m-%% and include the section headings         %%[m
+[31m-%% accordingly for your article type.       %%[m
+[31m-%%                                          %%[m
+[31m-%% See the Results and Discussion section   %%[m
+[31m-%% for details on how to create sub-sections%%[m
+[31m-%%                                          %%[m
+[31m-%% use \cite{...} to cite references        %%[m
+[31m-%%  \cite{koon} and                         %%[m
+[31m-%%  \cite{oreg,khar,zvai,xjon,schn,pond}    %%[m
+[31m-%%  \nocite{smith,marg,hunn,advi,koha,mouse}%%[m
+[31m-%%                                          %%[m
+[31m-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%[m
+[31m-[m
+[31m-%%%%%%%%%%%%%%%%%%%%%%%%% start of article main body[m
+[31m-% <put your article body there>[m
+[31m-[m
+[31m-%%%%%%%%%%%%%%%%[m
+[31m-%% Background %%[m
+[31m-%%[m
+[32m+[m[41m	[m
+[32m+[m	[32m%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%[m
+[32m+[m	[32m%%                                          %%[m
+[32m+[m	[32m%% The Main Body begins here                %%[m
+[32m+[m	[32m%%                                          %%[m
+[32m+[m	[32m%% Please refer to the instructions for     %%[m
+[32m+[m	[32m%% authors on:                              %%[m
+[32m+[m	[32m%% http://www.biomedcentral.com/info/authors%%[m
+[32m+[m	[32m%% and include the section headings         %%[m
+[32m+[m	[32m%% accordingly for your article type.       %%[m
+[32m+[m	[32m%%                                          %%[m
+[32m+[m	[32m%% See the Results and Discussion section   %%[m
+[32m+[m	[32m%% for details on how to create sub-sections%%[m
+[32m+[m	[32m%%                                          %%[m
+[32m+[m	[32m%% use \cite{...} to cite references        %%[m
+[32m+[m	[32m%%  \cite{koon} and                         %%[m
+[32m+[m	[32m%%  \cite{oreg,khar,zvai,xjon,schn,pond}    %%[m
+[32m+[m	[32m%%  \nocite{smith,marg,hunn,advi,koha,mouse}%%[m
+[32m+[m	[32m%%                                          %%[m
+[32m+[m	[32m%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%[m
+[32m+[m[41m	[m
+[32m+[m	[32m%%%%%%%%%%%%%%%%%%%%%%%%% start of article main body[m
+[32m+[m	[32m% <put your article body there>[m
+[32m+[m[41m	[m
+[32m+[m	[32m%%%%%%%%%%%%%%%%[m
+[32m+[m	[32m%% Background %%[m
+[32m+[m	[32m%%[m
+ 	[m
+ 	%%%%%%%%%%%%%%%%%%%%%%%%[m
+ 	%% Introduction[m
+[36m@@ -261,11 +263,11 @@[m
+ 	Interventions have been proposed at various points in order to reduce the human effort required to produce systematic reviews and other forms of evidence synthesis.[m
+ 	A major strand of the literature works on screening: the identification of relevant documents in a set of documents whose relevance is uncertain \cite{OMara-Eves2015}. [m
+ 	This is a time consuming and repetitive task, and in a research environment with constrained resources and increasing amounts of literature, this may limit the scope of the evidence synthesis projects undertaken.[m
+[31m-	Several papers have developed Active Learning (AL) approaches \cite{miwa2014, Wallace2010a, Wallace2010, Jonnalagadda2013, Przybya2018} to reduce the time required to screen documents. This paper sets out how current approaches are  unsuitable in practice, and outlines and evaluates a small modification that would make AL systems ready for live reviews.[m
+[32m+[m	[32mSeveral papers have developed Active Learning (AL) approaches \cite{miwa2014, Wallace2010a, Wallace2010, Jonnalagadda2013, Przybya2018} to reduce the time required to screen documents. This paper sets out how current approaches are  unreliable in practice, and outlines and evaluates modifications that would make AL systems ready for live reviews.[m
+ 	[m
+ 	Active learning is an iterative process where documents screened by humans are used to train a machine learning model to predict the relevance of unseen papers \cite{Settles2009}.[m
+ 	The algorithm chooses which studies will next be screened by humans, often those which are likely to be relevant or about which the model is uncertain, in order to generate more labels to feed back to the machine. [m
+[31m-	By prioritising those studies most likely to be relevant, a human reviewer most often identifies all relevant studies - or a given proportion of relevant studies (recall) - before having seen all the documents in the corpus. [m
+[32m+[m	[32mBy prioritising those studies most likely to be relevant, a human reviewer most often identifies all relevant studies -- or a given proportion of relevant studies (described by recall: the number of relevant studies identified divided by the total number of relevant studies) -- before having seen all the documents in the corpus.[m[41m [m
+ 	The proportion of documents not yet seen by the human when they reach the given recall threshold is referred to as the work saved. This represents the proportion of documents that they do not have to screen, which they would have had to without machine learning.[m
+ 	[m
+ 	Machine learning applications are often evaluated using sets of documents from already completed systematic reviews for which inclusion or exclusion labels already exist. [m
+[36m@@ -273,28 +275,30 @@[m
+ 	In live review settings, however, recall remains unknown until all documents have been screened. [m
+ 	In order for work to really be saved, reviewers have to stop screening while uncertain about recall. [m
+ 	This is particularly problematic in systematic reviews because low recall increases the risk of bias \cite{Lefebvre2011}.[m
+[31m-	The lack of appropriate stopping criteria has therefore been identified as a research gap \cite{bannach-brown2019, Marshall2019}, although some approaches have been suggested. These fall into the following categories:[m
+[32m+[m	[32mThe lack of appropriate stopping criteria has therefore been identified as a research gap \cite{bannach-brown2019, Marshall2019}, although some approaches have been suggested. These have most commonly fallen into the following categories:[m
+ 	\begin{itemize}[m
+ 		\item \textbf{Sampling criteria:} Reviewers estimate the number of relevant documents by taking a random sample at the start of the process. They stop when this number, or a given proportion of it, has been reached \cite{Shemilt2014}[m
+ 		\item \textbf{Heuristics:} Reviewers stop when a given number of irrelevant articles are seen in a row \cite{Jonnalagadda2013, Przybya2018}. [m
+ 		\item \textbf{Pragmatic criteria:} Reviewers stop when they run out of time \cite{miwa2014}. [m
+[32m+[m		[32m\item \textbf{Novel automatic stopping criteria:} Recent papers have proposed more complicated novel systems for automatically deciding when to stop screening \cite{Yu2019, DiNunzio2018, Howard2020}[m
+ 	\end{itemize}[m
+ 	[m
+[31m-	We review these methods in the following section and discuss their theoretical limitations. They are then tested on several previous systematic review datasets.[m
+[31m-	We demonstrate theoretically and with our experimental results, that these methods can not deliver consistent levels of work savings or recall - particularly across different domains, or datasets with different properties \cite{OMara-Eves2015}.  [m
+[32m+[m[41m	[m
+[32m+[m	[32mWe review the first three classes of these methods in the following section and discuss their theoretical limitations. They are then tested on several previous systematic review datasets.[m
+[32m+[m	[32mWe demonstrate theoretically and with our experimental results, that these three classes of methods can not deliver consistent levels of work savings or recall - particularly across different domains, or datasets with different properties \cite{OMara-Eves2015}. We also discuss the limitations of novel automatic stopping criteria, which have all demonstrated promising results, but do not achieve a given level of recall in a reliable or reportable way.[m[41m   [m
+ 	Without the reliable or reportable achievement of a desired level of recall, deployment of AL systems in live reviews remains challenging.[m
+ 	[m
+ 	This study proposes a system for estimating the recall based on random sampling of remaining documents. [m
+ 	We use a simple statistical method to iteratively test a null hypothesis that the recall achieved is less than a given target recall. If the hypothesis can be rejected, we conclude that the recall target has been achieved with a given confidence level and screening can be stopped.[m
+[31m-	This allows AL users to predefine a target in terms of uncertainty and recall, so that they can make transparent, easily communicable statements like ``A recall of more than 95\% was achieved with a confidence of 95\%''.[m
+[32m+[m	[32mThis allows AL users to predefine a target in terms of uncertainty and recall, so that they can make transparent, easily communicable statements like ``A recall of more than 95\% was achieved with a confidence of more than 95\%''.[m
+[32m+[m[41m	[m
+ 	[m
+[31m-	The information retrieval literature discusses similar stopping criteria for ranking algorithms like BM25 and variants \cite{DiNunzio2018, Yu2019}. However, the estimators they use to determine the recall rely on the specific ranking functions and depend on their search input. Therefore, the quality of the estimation depends on the adequacy of the model. Our approach, on the contrary, is independent of model choice or model performance. [m
+ 	[m
+[31m-	In the remainder of the paper, we first discuss in detail the shortcomings of existing stopping criteria. Then, we introduce our new criterion based on a hypergeometric test. We evaluate our stopping criteria, and compare their performance with heuristic and sampling based criteria on real-world systematic review datasets on which AL systems have previously been tested \cite{Cohen2006, Yu2019, Terasawa2009, Castaldi2009}.[m
+[32m+[m	[32mIn the remainder of the paper, we first discuss in detail the shortcomings of existing stopping criteria. Then, we introduce our new criteria based on a hypergeometric test. We evaluate our stopping criteria, and compare their performance with heuristic and sampling based criteria on real-world systematic review datasets on which AL systems have previously been tested \cite{Cohen2006, Yu2019, Terasawa2009, Castaldi2009}.[m
+ 	[m
+ 	\section*{Methods Review}[m
+[31m-[m
+[31m-[m
+[32m+[m[41m	[m
+[32m+[m[41m	[m
+ 	We start by explaining the sampling and heuristic based stopping criteria and discussing their methodological limitations. [m
+ 	[m
+ 	\subsection*{Sampling Based Stopping Criteria}[m
+[36m@@ -304,127 +308,184 @@[m
+ 	Reviewers continue to screen until this number, or a proportion of it corresponding to the desired level of recall, is reached.[m
+ 	[m
+ 	[m
+[31m-	However, the estimation of the BIR fails to correctly take into account sampling uncertainty \footnote{Although Shemilt et al. \cite{Shemilt2014} employ a method  to choose a sample size based on uncertainty, they fail to acknowledge the potential implications for recall of their choice. Their margin of error of 0.0025 and observed proportion of relevant studies of 0.0005 translate to estimates of $400 \pm 451$ relevant results. To reduce the margin of error to $\pm 5\%$ of estimated relevant studies, they would have had to screen 638,323 out of 804,919 results. See the notebook \url{https://github.com/mcallaghan/rapid-screening/blob/master/analysis/bir_theory.ipynb} that accompanies this paper for a detailed discussion}. [m
+[31m-	This uncertainty is crucial, as errors can have severe consequences. If the estimated number of relevant documents is even one unit above the true value, then no work savings will be achieved. If the number of relevant documents is underestimated, then the recall achieved will be less than 100\%.[m
+[32m+[m	[32mHowever, the estimation of the BIR fails to correctly take into account sampling uncertainty \footnote{Although Shemilt et al. \cite{Shemilt2014} employ a method  to choose a sample size based on uncertainty, they fail to acknowledge the potential implications for recall of their choice. Their margin of error of 0.0025 and observed proportion of relevant studies of 0.0005 translate to estimates of $400 \pm 451$ relevant results. To reduce the margin of error to $\pm 5\%$ of estimated relevant studies, they would have had to screen 638,323 out of 804,919 results. See the notebook \url{https://github.com/mcallaghan/rapid-screening/blob/master/analysis/bir_theory.ipynb} that accompanies this paper for a detailed discussion.}.[m[41m [m
+[32m+[m	[32mThis uncertainty is crucial, as errors can have severe consequences. Let us assume that users will stop screening when they have identified 95\% of the relevant number of documents. If the estimated number of relevant documents is more than the true number of relevant documents divided by 0.95, then the users will never see 95\% of the estimated number.  This means that they will keep screening until they have seen all documents, and no work savings will be achieved. Conversely, if the number of relevant documents is underestimated by even a single unit, then the recall achieved will be lower than the target.[m
+ 	[m
+ 	The number of relevant documents drawn without replacement from a finite sample of documents follows the hypergeometric distribution. [m
+[31m-	Figure \ref{fig:bir_error} shows the distribution of the predicted number of documents after drawing 1,000 documents from a total of 20,000 documents, where 500 documents (2.5\%) are relevant. The left shaded portion of the graph shows all the cases where the recall will be less than 95\%. This occurs 35.91\% of the time. The right shaded portion of the graph shows the cases where the number of relevant documents is overestimated and no work savings could be made. This occurs 46.24\% of the time. In only 17.85\% of cases can work savings be achieved while still achieving a recall of at least 95\%. [m
+[32m+[m	[32mFigure \ref{fig:bir_error} shows the distribution of the predicted number of documents after drawing 1,000 documents from a total of 20,000 documents, where 500 documents (2.5\%) are relevant. The left shaded portion of the graph shows all the cases where the recall will be less than 95\%. This occurs 48\% of the time. The right shaded portion of the graph shows the cases where the number of relevant documents is overestimated so much that no work savings could be made to achieve a target recall of 95\%. This occurs 29\% of the time. In only 23\% of cases can work savings be achieved while still achieving a recall of at least 95\%.[m[41m [m
+[32m+[m[41m	[m
+[32m+[m	[32mFigure \ref{fig:bir_error_distribution} shows the probability distribution of these errors according to the sample size. Even in very large samples both types of error remain frequent.[m
+[32m+[m	[32mThis shows how baseline estimation inevitably offers poor reliability, either in terms of recall or in work saved.[m
+ 	[m
+[31m-	Figure \ref{fig:bir_error_distribution} shows the probability distribution of these errors according to the sample size. Even in very large samples both types of error remain frequent).[m
+[31m-	This shows how baseline estimation inevitably offers poor reliability, both in terms of recall and in work saved.[m
+[31m-[m
+[31m-[m
+ 	\begin{figure*}[m
+[31m-	\centering[m
+[31m-	\begin{subfigure}[b]{0.475\textwidth}   [m
+[31m-		\centering [m
+[31m-		\includegraphics[width=\textwidth]{../images/bir_errors}[m
+[31m-		\caption[]%[m
+[31m-		{{\small Error types after 1,000 documents \\}}    [m
+[31m-		\label{fig:bir_error}[m
+[31m-	\end{subfigure}[m
+[31m-	\hfill[m
+[31m-	\begin{subfigure}[b]{0.475\textwidth}   [m
+[31m-		\centering [m
+[31m-		\includegraphics[width=\textwidth]{../images/bir_error_distribution}[m
+[31m-		\caption[]%[m
+[31m-		{{\footnotesize Error types across sample sizes}}    [m
+[31m-		\label{fig:bir_error_distribution}[m
+[31m-	\end{subfigure}[m
+[31m-[m
+[31m-	\caption{\small Distribution of under- or over-estimation errors using the BIR sampling method in a dataset of 20,000 documents of which 500 are relevant. Panel (a) shows the probability distribution of the estimated number of relevant documents after a sample of 1,000 documents. Panel (b) shows the probability of each type of error according to the sample size.} [m
+[31m-	\label{bir-sampling}[m
+[31m-\end{figure*}[m
+[31m-[m
+[31m-\begin{figure}[m
+[31m-	\includegraphics[width=\linewidth]{../images/proportions_1.png}[m
+[31m-	\includegraphics[width=\linewidth]{../images/proportions_2.png}[m
+[31m-	\caption{Similar low proportions of relevant documents in unseen documents with different consequences for recall. The top bar shows a random distribution of relevant documents (green) and irrelevant documents (red) at a given proportion of relevance. The bottom bar  shows distributions of relevant and irrelevant documents in hypothetical sets of seen (right) and unseen (left - transparent) documents.}[m
+[31m-	\label{unseen-proportions}[m
+[31m-\end{figure}[m
+[31m-[m
+[31m-[m
+[32m+[m		[32m\centering[m
+[32m+[m		[32m\begin{subfigure}[b]{0.475\textwidth}[m[41m   [m
+[32m+[m			[32m\centering[m[41m [m
+[32m+[m			[32m\includegraphics[width=\textwidth]{2_figs_bir_errors.pdf}[m
+[32m+[m			[32m\caption[]%[m
+[32m+[m			[32m{{\small Error types after 1,000 documents \\}}[m[41m    [m
+[32m+[m			[32m\label{fig:bir_error}[m
+[32m+[m		[32m\end{subfigure}[m
+[32m+[m		[32m\hfill[m
+[32m+[m		[32m\begin{subfigure}[b]{0.475\textwidth}[m[41m   [m
+[32m+[m			[32m\centering[m[41m [m
+[32m+[m			[32m\includegraphics[width=\textwidth]{2_figs_bir_error_distribution.pdf}[m
+[32m+[m			[32m\caption[]%[m
+[32m+[m			[32m{{\footnotesize Error types across sample sizes}}[m[41m    [m
+[32m+[m			[32m\label{fig:bir_error_distribution}[m
+[32m+[m		[32m\end{subfigure}[m
+ 		[m
+[31m-\subsubsection*{Heuristic Stopping Criteria}[m
+[31m-[m
+[31m-Some studies give the example of heuristic stopping criteria based on drawing a given number of irrelevant articles in a row \cite{Jonnalagadda2013, Przybya2018}. [m
+[31m-We take this as a proxy for estimating that the proportion of documents remaining in the unseen documents is low. [m
+[31m-We find this a promising intuition, but argue that 1) it ignores uncertainty, as discussed in relation to the previous method; and 2) it misunderstands the significance of a low proportion of relevant documents in estimating the recall.[m
+[31m-[m
+[31m-Figure \ref{unseen-proportions} illustrates this second point. [m
+[31m-We show two scenarios with identical low proportions of relevant documents observed in the unseen documents.[m
+[31m-In the top figure, machine learning (ML) has performed well, and 74\% of the screened documents were relevant. [m
+[31m-In the bottom figure,  ML has performed less well, and only 26\% of the screened documents were relevant.[m
+[31m-In both cases, only 2\% of unseen documents are relevant, but 2\% of a larger number means more relevant documents are missed.[m
+[31m-Recall is not simply a function of the relevance of unseen documents, but also of the number of unseen documents. [m
+[31m-This also means that where ML has performed well (as in the top figure), a low proportion of relevant documents in those not yet checked is indicative of lower recall than where ML has performed less well.[m
+[31m-Likewise, where the proportion of relevant documents in the whole corpus is low, a similarly low proportion of relevant documents is likely to be observed, even when true recall is low.[m
+[31m-[m
+[31m-[m
+[31m-[m
+[31m-\subsubsection*{Other stopping criteria}[m
+[31m-[m
+[31m-Wallace et al. \cite{Wallace2010a} develop a ``simple, operational stopping criterion'': stopping after half the documents have been screened. Although the criterion worked in their experiment, it is unclear how this could be generalised, and its development depended on knowledge of the true relevance values. [m
+[31m-Jonnalagadda and Petitti \cite{Jonnalagadda2013} note that ``the reviewer can elect to end the process of classifying documents at any point, recognizing that stopping before reviewing all documents involves a trade-off of lower recall for reduced workload'', although clearly the reviewer lacks information about probable recall.[m
+[31m-Yu and Menzies \cite{Yu2019} adopt a more complicated stopping criterion which allows the user to target a specific level of recall. However, reviewers are not given the opportunity to specify a confidence level, and for two of the four datasets in which they tested their criteria, the median achieved recall at a stopping criteria targeting 95\% recall was below 95\%. Di Nunzio \cite{DiNunzio2018} also present an innovative stopping criteria, but it does not take into account uncertainty, and produces results \textit{near} a target recall threshold, rather than above it in a reliable proportion of cases. [m
+[31m-These last examples are promising developments, but fail to take into account the needs of live systematic reviews, where the reliability of and ease of communication about recall are paramount.[m
+[31m-[m
+[31m-\subsection*{Methods}[m
+[31m-[m
+[31m-\subsection*{A Statistical Stopping Criterion for Active Learning}[m
+[31m-[m
+[32m+[m		[32m\caption{\small Distribution of under- or over-estimation errors using the BIR sampling method in a dataset of 20,000 documents of which 500 are relevant. Panel (a) shows the probability distribution of the estimated number of relevant documents after a sample of 1,000 documents. Panel (b) shows the probability of each type of error according to the sample size.}[m[41m [m
+[32m+[m		[32m\label{bir-sampling}[m
+[32m+[m	[32m\end{figure*}[m
+[32m+[m[41m	[m
+[32m+[m	[32m\begin{figure}[m
+[32m+[m		[32m\includegraphics[width=\linewidth]{2_figs_proportions_1.png}[m
+[32m+[m		[32m\includegraphics[width=\linewidth]{2_figs_proportions_2.png}[m
+[32m+[m		[32m\caption{Similar low proportions of relevant documents in unseen documents with different consequences for recall. The top bar shows a random distribution of relevant documents (green) and irrelevant documents (red) at a given proportion of relevance. The bottom bar  shows distributions of relevant and irrelevant documents in hypothetical sets of seen (right) and unseen (left - transparent) documents.}[m
+[32m+[m		[32m\label{unseen-proportions}[m
+[32m+[m	[32m\end{figure}[m
+[32m+[m[41m	[m
+[32m+[m[41m	[m
+[32m+[m[41m	[m
+[32m+[m	[32m\subsubsection*{Heuristic Stopping Criteria}[m
+[32m+[m[41m	[m
+[32m+[m	[32mSome studies give the example of heuristic stopping criteria based on drawing a given number of irrelevant articles in a row \cite{Jonnalagadda2013, Przybya2018}.[m[41m [m
+[32m+[m	[32mWe take this as a proxy for estimating that the proportion of documents remaining in the unseen documents is low, as the probability of observing 0 relevant documents in a given sample (analogous to a set of consecutive irrelevant results) is a decreasing function of the number of relevant documents in the population.[m
+[32m+[m	[32mWe find this a promising intuition, but argue that 1) it ignores uncertainty, as discussed in relation to the previous method;[m[41m [m
+[32m+[m	[32m2) it lacks a formal description that would help to find a suitable threshold for the criterion; and 3) it misunderstands the significance of a low proportion of relevant documents in estimating the recall.[m
+[32m+[m[41m	[m
+[32m+[m	[32mFigure \ref{unseen-proportions} illustrates this third point.[m[41m [m
+[32m+[m	[32mWe show two scenarios with identical low proportions of relevant documents observed in the unseen documents.[m
+[32m+[m	[32mIn the top figure, machine learning (ML) has performed well, and 74\% of the screened documents were relevant.[m[41m [m
+[32m+[m	[32mIn the bottom figure, ML has performed less well, and only 26\% of the screened documents were relevant.[m
+[32m+[m	[32mIn both cases, only 2\% of unseen documents are relevant, but 2\% of a larger number means more relevant documents are missed.[m
+[32m+[m	[32mRecall is not simply a function of the proportion of unseen relevant documents, but also of the number of unseen documents.[m[41m [m
+[32m+[m	[32mThis also means that where ML has performed well (as in the top figure), a low proportion of relevant documents in those not yet checked is indicative of lower recall than where ML has performed less well.[m
+[32m+[m	[32mLikewise, where the proportion of relevant documents in the whole corpus is low, a similarly low proportion of relevant documents is likely to be observed, even when true recall is low.[m[41m [m
+[32m+[m	[32mThis shows us that even a perfect estimator of the proportion of unseen relevant documents is insufficient on its own to provide sufficient information about when to stop screening. To estimate recall reliably, it is necessary to take into account the total number of unseen relevant documents (or their proportion times the number of unseen documents).[m
+[32m+[m[41m	[m
+[32m+[m	[32m\subsubsection*{Pragmatic stopping criteria}[m
+[32m+[m[41m	[m
+[32m+[m	[32mWallace et al. \cite{Wallace2010a} develop a ``simple, operational stopping criterion'': stopping after half the documents have been screened. Although the criterion worked in their experiment, it is unclear how this could be generalised, and its development depended on knowledge of the true relevance values.[m[41m [m
+[32m+[m	[32mJonnalagadda and Petitti \cite{Jonnalagadda2013} note that ``the reviewer can elect to end the process of classifying documents at any point, recognizing that stopping before reviewing all documents involves a trade-off of lower recall for reduced workload'', although clearly the reviewer lacks information about probable recall.[m
+[32m+[m[41m	[m
+[32m+[m	[32m\subsubsection*{Novel automatic stopping criteria}[m
+[32m+[m	[32mTwo examples come from the information retrieval literature. Di Nunzio \cite{DiNunzio2018} presents a novel automatic stopping criterion based on BM25, although recall reported is ``often between 0.92 and 0.94 and consistently over 0.7''.[m
+[32m+[m	[32mYu and Menzies \cite{Yu2019} also present a stopping criterion based on BM25 which allows the user to target a specific level of recall.[m[41m [m
+[32m+[m	[32mHowever, reviewers are not given the opportunity to specify a confidence level, and for two of the four datasets in which they tested their criteria, the median achieved recall at a stopping criteria targeting 95\% recall was below 95\%. In each case, the reliability of the estimate is dependent on the performance of the model.[m
+[32m+[m[41m	[m
+[32m+[m	[32mFinally, Howard et al. \cite{Howard2020} present a method to estimate recall based on the number of irrelevant documents $D$ observed in a list of documents since the $\delta th$ previous relevant document.[m[41m [m
+[32m+[m	[32mThey reason that this should follow the negative binomial distribution based on the proportion of remaining relevant documents $p$, and use this information to estimate $\hat{p}$, and with this, the total number of relevant articles and the estimated recall.[m
+[32m+[m[41m	[m
+[32m+[m	[32mHowever, their method does not quantify uncertainty, but can only claim that the method ``\textit{tends} to result in a conservative estimate of recall'' (emphasis ours). This is not guaranteed by the criterion itself but rather a finding of the simulation with example datasets. Further the authors do not give sufficient information to reproduce their results, providing neither code (they describe their own proprietary software), nor an equation for $\hat{p}$. Additionally, the criterion requires a tuning parameter $\delta$, which users may have insufficient information to set optimally.[m
+[32m+[m	[32mLastly, because screening is a form of sampling without replacement, the negative hypergeometric distribution should be preferred to the negative binomial, even though the latter can be a good approximation for cases with large numbers of documents.[m
+[32m+[m[41m	[m
+[32m+[m	[32mThese last examples are promising developments, but they all fail to take into account the needs of live systematic reviews, where the reliability of and ease of communication about recall are paramount, and the results are independent of model performance. In the following, we explain our own method, which provides clearly communicable estimates of recall, which manage uncertainty in a way robust to model performance.[m
+[32m+[m[41m	[m
+[32m+[m	[32m\subsection*{Methods}[m
+[32m+[m[41m	[m
+[32m+[m	[32m\subsection*{A Statistical Stopping Criterion for Active Learning}[m
+[32m+[m[41m	[m
+[32m+[m	[32mIn our screening setup, we start off with $N_{tot}$ documents that are potentially relevant. $\rho_{tot}$ of these documents are actually relevant, but we don't know this value \textit{a priori}. As we screen relevant documents we include them, so $\rho_{seen}$ represents the number of relevant documents screened, and recall $\tau$ is given by[m[41m [m
+[32m+[m[41m	[m
+[32m+[m	[32m\begin{equation}[m
+[32m+[m	[32m\tau = \frac{\rho_{seen}}{\rho_{tot}}[m
+[32m+[m	[32m\label{eq:recall-def}[m
+[32m+[m	[32m\end{equation}[m
+[32m+[m[41m	[m
+[32m+[m	[32mWe set a target recall $\tau_{tar}$ and a confidence level $\alpha$.[m[41m [m
+[32m+[m	[32mWe want to keep screening until $\tau \geq \tau_{tar}$, and devise a hypothesis test to estimate whether this is the case with a given level of confidence.[m[41m [m
+[32m+[m	[32mWe do this	based on interrupting the active-learning process and drawing a random sample from the remaining unseen documents.[m[41m [m
+[32m+[m	[32mWe first describe this test, before showing how a variation on the test can be used to decide when to begin drawing a random sample.[m[41m [m
+[32m+[m[41m	[m
+ 	\subsubsection*{Random Sampling}[m
+ 	[m
+[31m-	After using machine learning to select which documents are screened by humans as described above, we begin drawing a random sample from the remaining documents (when this happens is described below). [m
+[31m-[m
+[31m-	We use random sampling to estimate the probability that a target recall $\tau$ has been achieved. Because we are sampling a binary outcome without replacement, we can use the hypergeometric distribution to formulate a statistical test. The hypergeometric distribution tells us the probability of observing $k$ relevant documents in $n$ draws from a finite population of $N$ documents with $K$ relevant documents. [m
+[32m+[m	[32mAt the start of the sample, $N_{AL}$ is the number of documents seen during the active learning process, and $N$ is the number of documents remaining, so that[m[41m [m
+[32m+[m[41m	[m
+[32m+[m	[32m\begin{equation}[m
+[32m+[m	[32mN = N_{tot} - N_{AL}[m
+[32m+[m	[32m\end{equation}[m[41m [m
+[32m+[m[41m	[m
+[32m+[m	[32mWe refer to the number  of relevant documents seen during active learning as $\rho_{AL}$, and the number of remaining relevant documents as $K$. We do not know the value of $K$ but know that it is given by the total number of relevant documents minus the number of relevant documents seen during active learning.[m
+[32m+[m[41m	[m
+[32m+[m	[32m\begin{equation}[m
+[32m+[m	[32mK = \rho_{tot} - \rho_{AL}[m
+[32m+[m	[32m\label{eq:K}[m
+[32m+[m	[32m\end{equation}[m
+[32m+[m[41m	[m
+[32m+[m	[32mWe now take random draws from the remaining $N$ documents, and denote the number of documents drawn with $n$ and the number of relevant documents drawn with $k$. The number of relevant documents seen is updated by adding the number of relevant documents seen since sampling began to the number of relevant documents seen during active learning.[m
+ 	[m
+ 	\begin{equation}[m
+[31m-		k \sim Hypergeometric(N, K, n)[m
+[32m+[m	[32m\rho_{seen} = \rho_{AL} + k[m
+[32m+[m	[32m\label{eq:rho_seen}[m
+ 	\end{equation}[m
+ 	[m
+[31m-	In our case, we know $k$, $n$ and $N$ after each draw, but $K$ is unknown. We therefore substitute a hypothetical value $\hat{K}$: the minimum number of relevant documents in the sample had the recall target been missed.[m
+[32m+[m	[32mWe proceed to form a null hypothesis that the true value of recall is less than our target recall:[m
+ 	[m
+[31m-	Recall $R$ is given by the number of relevant documents that have been seen $\rho_{s}$ over the number of relevant documents in the whole dataset $\rho_{tot}$[m
+[32m+[m	[32m\begin{equation}[m
+[32m+[m	[32mH_0 : \tau < \tau_{tar}[m
+[32m+[m	[32m\label{eq:null_hypothesis}[m
+[32m+[m	[32m\end{equation}[m
+[32m+[m[41m	[m
+[32m+[m	[32mBecause we are sampling without replacement, we can use the hypergeometric distribution to find out the probability of observing $k$ relevant documents in a sample of $n$ documents from a population of $N$ documents of which $K$ are relevant. We know that $k$ is distributed hypergeometrically:[m
+ 	[m
+ 	\begin{equation}[m
+[31m-		R = \frac{\rho_{seen}}{\rho_{tot}}[m
+[32m+[m	[32mk \sim Hypergeometric(N, K, n)[m
+ 	\end{equation}[m
+ 	[m
+[31m-	The number of relevant documents in the whole dataset is the sum of $\hat{\rho}$ relevant documents seen before random sampling began and $\tilde{K}$ relevant documents unseen at the start of random sampling. We can therefore express $R$ as[m
+[32m+[m	[32mWe introduce a hypothetical value for $K$, which we call $K_{tar}$. This represents the minimum number of relevant documents remaining at the start of sampling compatible with our null hypothesis that recall is below our target.[m
+ 	[m
+ 	\begin{equation}[m
+[31m-		R = \frac{\dot{\rho}}{\hat{\rho} + \tilde{K}},[m
+[32m+[m	[32mK_{tar} = \lfloor \frac{\rho_{seen}}{\tau_{tar}}-\rho_{AL}+1 \rfloor[m
+ 	\end{equation}[m
+ 	[m
+[31m-	Substituting the target recall $\tau$ for $R$, reorganising and rounding up to the next integer, we can, after each draw, calculate $\hat{K}$, which is the minimum number of relevant documents that could have been remaining when random sampling started, if recall were lower than the target.[m
+[32m+[m	[32mThis equation is derived by combining Eqs.~\ref{eq:recall-def} and \ref{eq:rho_seen}. Because $k$ can only take integer values, $K_{tar}$ is the smallest integer that satisfies the inequality in Eq.~\ref{eq:null_hypothesis}.[m
+[32m+[m	[32mWith $K_{tar}$, we can reformulate our null hypothesis: the true number of relevant documents in the sample is greater than our hypothetical value.[m
+ 	[m
+ 	\begin{equation}[m
+[31m-		\hat{K} = \lceil \frac{\rho}{\tau} - \hat{\rho} \rceil[m
+[32m+[m	[32mH_0 : K > K_{tar}[m
+ 	\end{equation}[m
+ 	[m
+[31m-	We use the cumulative distribution function of the hypergeometric distribution to estimate the probability $p$ of having observed $k$ or fewer relevant documents in the sample given $\hat{K}$. This function gives us an upper bound on the probability of observing no more than the number of relevant documents in our random sample that we did, if our recall target had not been achieved.[m
+[31m-	If this is below our confidence level $1 - \alpha$, we can reject the null hypothesis that the recall target was not achieved.[m
+[32m+[m	[32mWe test this by calculating the probability of observing $k$ or fewer relevant documents from the hypergeometric distribution given by $K_{tar}$, using the cumulative probability mass function.[m
+ 	[m
+[32m+[m	[32m\begin{equation}[m
+[32m+[m	[32mp = P(X \leq k)$, where $X \sim Hypergeometric(N,K_{tar},n)[m
+[32m+[m	[32m\label{eq:p-value}[m
+[32m+[m	[32m\end{equation}[m
+ 	[m
+[32m+[m	[32mBecause the cumulative probability mass function $P(X \leq k)$ is decreasing with increasing $K$, this gives the maximum probability of observing $k$ for all values of $K$ compatible with our null hypothesis. Similar arguments have been made to derive confidence intervals for estimating the parameter $K$ in the hypergeometric distribution function \citep{Buonaccorsi1987, Sahai1995} and the derivation of an equivalent criterion could use the upper limit of such a confidence interval of an estimated $K$ from the observation of $k$.[m
+ 	[m
+[31m-[m
+[31m-[m
+[31m-	\subsubsection*{Pseudo-random sampling}[m
+[32m+[m	[32mWe can reject our null hypothesis and stop screening if the maximum probability of obtaining our observed results given our null hypothesis $p$ is below $1-\alpha$. This means, we can report the likelihood that we achieve a recall above our target as being more than $\alpha$ \footnote{The notebook, \url{https://github.com/mcallaghan/rapid-screening/blob/master/analysis/hyper_criteria_theory.ipynb}, in the github repository accompanying this paper contains a step by step explanation of this method with code and examples}.[m
+[32m+[m[41m	[m
+[32m+[m[41m	[m
+[32m+[m[41m	[m
+[32m+[m	[32m\subsubsection*{Ranked quasi-sampling}[m
+[32m+[m[41m	[m
+[32m+[m	[32mWe now proceed to describe a special case of the method described above which we (1) use as a heuristic in order to decide when to begin random sampling; and (2) test as an independent stopping criterion. The method works by treating batches of previously screened documents as if they were random samples.[m
+[32m+[m[41m	[m
+[32m+[m	[32mWe calculate $p$ as above for subsets of the already screened documents. Concretely, we use subsets of documents $A_i$ by looking back to the last $i$ documents, $A_i = \{d_{N_{seen} - 1}, ..., d_{N_{seen} - i}\}$, where the documents $d$ are indexed in the order in which they have been screened. For a specific $i$, this corresponds to  random sampling beginning after seeing $i$ documents in the section above.[m
+[32m+[m	[32mThus, we set[m[41m [m
+[32m+[m	[32m$N_{AL}$ to $i$,[m[41m [m
+[32m+[m	[32m$n$ to $N_{seen}-i$,[m[41m [m
+[32m+[m	[32m$\rho_{AL}$ to the number of relevant documents seen when $i$ documents had been seen,[m
+[32m+[m	[32mand $k$ to the number of relevant documents seen since $i$ documents had been seen, and calculate $p$ according to Eq.~\ref{eq:p-value}.[m
+[32m+[m	[32mWe compute $p$ for all sets $A_i$ with $i \in {N_{seen}-1 \dots 1}$.[m
+[32m+[m	[32mThis gives us a vector $\bm{p}$, representing the values of $p$ which would have been estimated at each point at which we could have stopped active learning and began random sampling. The lowest probability of our null hypothesis being true that we would have thereby obtained is given by $p_{min}$. With the vectorized implementation included in our accompanying code, these calculations are completed in less than the time it would take a human to code the next document.[m
+[32m+[m[41m	[m
+[32m+[m	[32mFirst, we use this method as a useful heuristic for deciding when to stop active learning, and switch to random sampling. For this, we choose a higher threshold for the likelihood, $p_{min} < 1-\frac{\alpha}{2}$. Second, we use the same ranked quasi-sampling as an independent stopping criterion, by continuing screening with active learning until $p_{min} < 1 - \alpha$. We present the results of this second procedure separately below.[m
+[32m+[m[41m	[m
+[32m+[m	[32mGiven that the documents seen during active learning are ranked according to predicted relevance, they do not in fact represent a random sample. This means that the test is unlikely to be accurate. It would be reasonable to assume that the proportion of relevant documents in each ranked quasi-sample is as high if not higher than the proportion of relevant documents in the unseen documents. This assumption would make this estimator conservative. As such it works in a similar way to the criterion proposed by Howard et al. \cite{Howard2020}, although it makes use of more information and provides hypothesis testing rather than just a point estimate of recall.[m
+ 	[m
+[31m-	In order to decide when to begin a random sample, we employ pseudo-random sampling, where we treat previously screened documents as a random sample. The distribution of relevant documents among previously screened documents is clearly not random, as documents predicted to be relevant are prioritised. It is reasonable to assume, though, that the density of relevant documents is greater among previously screened documents than among remaining unseen documents. This would make the following estimates conservative. [m
+ 	[m
+[31m-	After reviewing each document, $S$ documents have been screened, and $U$ documents are yet to be seen. We treat $i = 1 \dots S$ of the previously screened documents as a random sample, and calculate $p$, using the method above, for each sample, taking the minimum across all samples $p_{min}$. If $p_{min}$ is less than $1-\frac{\alpha}{2}$, we switch to random sampling. We also calculate $p_{min}$ for the remaining documents as if we had not switched to random sampling and record the recall and work saved when $p_{min} < 1 - \alpha$. We present these in the results below as the psuedo-random sampling criterion.[m
+[31m-[m
+[31m-[m
+ 	\medskip[m
+ 	[m
+ 	\begin{figure}[m
+[31m-		\includegraphics[width=0.7\linewidth]{../images/flow}[m
+[32m+[m		[32m\includegraphics[width=0.7\linewidth]{2_figs_flow.pdf}[m
+ 		\caption{A workflow for active learning in screening with a statistical stopping criterion}[m
+ 		\label{flow}[m
+ 	\end{figure}[m
+[31m-[m
+[32m+[m[41m	[m
+ 	\subsection*{Evaluation}[m
+ 	[m
+ 	We evaluate each of the criteria discussed on real world test data, operationalising the heuristic stopping criteria with 50, 100, and 200 consecutive irrelevant records. We run 100 iterations on each dataset and record the following measures.[m
+[36m@@ -432,15 +493,15 @@[m [mThese last examples are promising developments, but fail to take into account th[m
+ 		\item \textbf{Actual Recall}: The recall when the stopping criteria was met[m
+ 		\item \textbf{WS-SC}: Work saved when the stopping criteria was met[m
+ 		\item \textbf{Additional Burden}: the work saved when the criterion was triggered subtracted from the work saved when the recall target was actually achieved.[m
+[31m-[m
+[32m+[m[41m		[m
+ 	\end{itemize}[m
+[31m-	For simplicity, we use a basic SVM model \cite{Cortes95, Pedregosa2011}, with 1-2 word n-grams taken from the document abstracts used as input data. We start with random samples of 200 documents (we do not employ Shemilt et al's methods for identifying the ``optimal'' sample size, as we showed these in the methods section to be unhelpful). Subsequently, we ``screen'', that is, we reveal the labels of, batches of the 20 documents with the highest predicted relevance scores, retraining the model after each batch. Each criterion is evaluated after each document is ``screened''.[m
+[31m-	 For our criteria, we set the target recall value to 95\% and the confidence level to 95\%.[m
+[32m+[m	[32mFor simplicity, we use a basic SVM model \cite{Cortes95, Pedregosa2011}, with 1-2 word n-grams taken from the document abstracts used as input data. We start with random samples of 200 documents (we do not employ Shemilt et al's methods for identifying the ``optimal'' sample size, as we showed these in the methods section to be unhelpful). Subsequently, we ``screen'', that is, we reveal the labels of, batches of the 20 documents with the highest predicted relevance scores, retraining the model after each batch. Theoretically, using smaller batch sizes could mean that the recall target is achieved more quickly, but this is a trade-off between computational time spent training, and the speed at which the algorithm can ``learn''. However this is a modelling choice which may affect work saved, but not recall. Each criterion is evaluated after each document is ``screened''.[m
+[32m+[m	[32mFor our criteria, we set the target recall value to 95\% and the confidence level to 95\%.[m
+ 	[m
+ 	[m
+ 	%\subsubsection*{Evaluation Data}[m
+ 	\begin{table}[m
+[31m-		\input{../tables/datasets.tex}[m
+[32m+[m		[32m\input{1_tables_datasets.tex}[m
+ 		\caption{Dataset properties}[m
+ 		\label{tab:data}[m
+ 	\end{table}[m
+[36m@@ -456,137 +517,141 @@[m [mThese last examples are promising developments, but fail to take into account th[m
+ 	Figure \ref{recall-wss} shows the actual recall and work savings achieved when each stopping criteria has been satisfied. [m
+ 	For comparison, we also include the results that would have been achieved with \textit{a priori} knowledge of the data, that is, the work saved when the 95\% recall target was actually reached. In a live systematic review, reviewers would never know when this had been reached, but these are the work savings most often reported in machine learning for systematic review screening studies.[m
+ 	[m
+[31m-[m
+[31m-    \begin{figure*}[m
+[31m-	\centering[m
+[31m-	\begin{subfigure}[b]{0.475\textwidth}   [m
+[31m-		\centering [m
+[31m-		\includegraphics[width=\textwidth]{../images/jointplot_hyper}[m
+[31m-		\caption[]%[m
+[31m-		{{\small Hypergeometric sampling \\}}    [m
+[31m-		\label{fig:hyper}[m
+[31m-	\end{subfigure}[m
+[31m-	\hfill[m
+[31m-	\begin{subfigure}[b]{0.475\textwidth}   [m
+[31m-		\centering [m
+[31m-		\includegraphics[width=\textwidth]{../images/jointplot_nrs}[m
+[31m-		\caption[]%[m
+[31m-		{{\footnotesize Pseudorandom hypergeometric sampling}}    [m
+[31m-		\label{fig:nrs}[m
+[31m-	\end{subfigure}[m
+[31m-	\vskip\baselineskip[m
+[31m-	\begin{subfigure}[b]{0.475\textwidth}[m
+[32m+[m[41m	[m
+[32m+[m	[32m\begin{figure*}[m
+ 		\centering[m
+[31m-		\includegraphics[width=\textwidth]{../images/jointplot_bir}[m
+[31m-		\caption[Network2]%Example-Image[m
+[31m-		{{\small Baseline Sampling}}    [m
+[31m-		\label{fig:bir}[m
+[31m-	\end{subfigure}[m
+[31m-	\hfill[m
+[31m-	\begin{subfigure}[b]{0.475\textwidth}  [m
+[31m-		\centering [m
+[31m-		\includegraphics[width=\textwidth]{../images/jointplot_ih_50}[m
+[31m-		\caption[]%[m
+[31m-		{{\small 50 consecutive irrelevant results}}    [m
+[31m-		\label{fig:ih_50}[m
+[31m-	\end{subfigure}[m
+[31m-	\vskip\baselineskip[m
+[31m-	\begin{subfigure}[b]{0.475\textwidth}   [m
+[31m-		\centering [m
+[31m-		\includegraphics[width=\textwidth]{../images/jointplot_ih_200}[m
+[31m-		\caption[]%[m
+[31m-		{{\small 200 consecutive irrelevant results \\}}    [m
+[31m-		\label{fig:ih_200}[m
+[31m-	\end{subfigure}[m
+[31m-	\hfill[m
+[31m-	\begin{subfigure}[b]{0.475\textwidth}   [m
+[31m-		\centering [m
+[31m-		\includegraphics[width=\textwidth]{../images/jointplot_pf.pdf}[m
+[31m-		\caption[]%[m
+[31m-		{{\footnotesize \textit{a priori} knowledge}}   [m
+[31m-		\label{fig:pf}[m
+[31m-	\end{subfigure}[m
+[31m-[m
+[31m-	\caption{\small Distribution of recall and work saved after each stopping criteria. Green dots show results for datasets with less than 1,000 documents, orange dots show datasets with 1,000 - 2,000 documents, and blue dots show datasets with more than 2,000 documents.} [m
+[31m-	\label{recall-wss}[m
+[31m-\end{figure*}[m
+[31m-[m
+[31m-\begin{figure*}[m
+[31m-	\centering[m
+ 		\begin{subfigure}[b]{0.475\textwidth}   [m
+[31m-		\centering [m
+[31m-		\includegraphics[width=\textwidth]{../images/jointplot_burden_hyper}[m
+[31m-		\caption[]%[m
+[31m-		{{\small Hypergeometric sampling \\}}    [m
+[31m-		\label{fig:hyper_ab}[m
+[31m-	\end{subfigure}[m
+[31m-	\hfill[m
+[31m-	\begin{subfigure}[b]{0.475\textwidth}   [m
+[31m-		\centering [m
+[31m-		\includegraphics[width=\textwidth]{../images/jointplot_burden_nrs.pdf}[m
+[31m-		\caption[]%[m
+[31m-		{{\footnotesize Pseudorandom hypergeometric sampling}}    [m
+[31m-		\label{fig:nrs_ab}[m
+[31m-	\end{subfigure}[m
+[31m-	\hfill[m
+[31m-	\vskip\baselineskip[m
+[31m-	\begin{subfigure}[b]{0.475\textwidth}[m
+[32m+[m			[32m\centering[m[41m [m
+[32m+[m			[32m\includegraphics[width=\textwidth]{2_figs_jointplot_hyper.pdf}[m
+[32m+[m			[32m\caption[]%[m
+[32m+[m			[32m{{\small Hypergeometric sampling \\}}[m[41m    [m
+[32m+[m			[32m\label{fig:hyper}[m
+[32m+[m		[32m\end{subfigure}[m
+[32m+[m		[32m\hfill[m
+[32m+[m		[32m\begin{subfigure}[b]{0.475\textwidth}[m[41m   [m
+[32m+[m			[32m\centering[m[41m [m
+[32m+[m			[32m\includegraphics[width=\textwidth]{2_figs_jointplot_nrs.pdf}[m
+[32m+[m			[32m\caption[]%[m
+[32m+[m			[32m{{\footnotesize Ranked quasi-sampling}}[m[41m    [m
+[32m+[m			[32m\label{fig:nrs}[m
+[32m+[m		[32m\end{subfigure}[m
+[32m+[m		[32m\vskip\baselineskip[m
+[32m+[m		[32m\begin{subfigure}[b]{0.475\textwidth}[m
+[32m+[m			[32m\centering[m
+[32m+[m			[32m\includegraphics[width=\textwidth]{2_figs_jointplot_bir.pdf}[m
+[32m+[m			[32m\caption[Network2]%Example-Image[m
+[32m+[m			[32m{{\small Baseline Sampling}}[m[41m    [m
+[32m+[m			[32m\label{fig:bir}[m
+[32m+[m		[32m\end{subfigure}[m
+[32m+[m		[32m\hfill[m
+[32m+[m		[32m\begin{subfigure}[b]{0.475\textwidth}[m[41m  [m
+[32m+[m			[32m\centering[m[41m [m
+[32m+[m			[32m\includegraphics[width=\textwidth]{2_figs_jointplot_ih_50.pdf}[m
+[32m+[m			[32m\caption[]%[m
+[32m+[m			[32m{{\small 50 consecutive irrelevant results}}[m[41m    [m
+[32m+[m			[32m\label{fig:ih_50}[m
+[32m+[m		[32m\end{subfigure}[m
+[32m+[m		[32m\vskip\baselineskip[m
+[32m+[m		[32m\begin{subfigure}[b]{0.475\textwidth}[m[41m   [m
+[32m+[m			[32m\centering[m[41m [m
+[32m+[m			[32m\includegraphics[width=\textwidth]{2_figs_jointplot_ih_200.pdf}[m
+[32m+[m			[32m\caption[]%[m
+[32m+[m			[32m{{\small 200 consecutive irrelevant results \\}}[m[41m    [m
+[32m+[m			[32m\label{fig:ih_200}[m
+[32m+[m		[32m\end{subfigure}[m
+[32m+[m		[32m\hfill[m
+[32m+[m		[32m\begin{subfigure}[b]{0.475\textwidth}[m[41m   [m
+[32m+[m			[32m\centering[m[41m [m
+[32m+[m			[32m\includegraphics[width=\textwidth]{2_figs_jointplot_pf.pdf}[m
+[32m+[m			[32m\caption[]%[m
+[32m+[m			[32m{{\footnotesize \textit{a priori} knowledge}}[m[41m   [m
+[32m+[m			[32m\label{fig:pf}[m
+[32m+[m		[32m\end{subfigure}[m
+[32m+[m[41m		[m
+[32m+[m		[32m\caption{\small Distribution of recall and work saved after each stopping criteria. Green dots show results for datasets with less than 1,000 documents, orange dots show datasets with 1,000 - 2,000 documents, and blue dots show datasets with more than 2,000 documents.}[m[41m [m
+[32m+[m		[32m\label{recall-wss}[m
+[32m+[m	[32m\end{figure*}[m
+[32m+[m[41m	[m
+[32m+[m	[32m\begin{figure*}[m
+ 		\centering[m
+[31m-		\includegraphics[width=\textwidth]{../images/jointplot_burden_bir}[m
+[31m-		\caption[Network2]%Example-Image[m
+[31m-		{{\small Baseline Sampling}}    [m
+[31m-		\label{fig:bir_ab}[m
+[31m-	\end{subfigure}[m
+[31m-	\hfill[m
+[31m-	\begin{subfigure}[b]{0.475\textwidth}  [m
+[31m-		\centering [m
+[31m-		\includegraphics[width=\textwidth]{../images/jointplot_burden_ih_50}[m
+[31m-		\caption[]%[m
+[31m-		{{\small 50 consecutive irrelevant results}}    [m
+[31m-		\label{fig:ih_50_ab}[m
+[31m-	\end{subfigure}[m
+[31m-	\vskip\baselineskip[m
+[31m-[m
+[31m-	\begin{subfigure}[b]{0.475\textwidth}   [m
+[31m-		\centering [m
+[31m-		\includegraphics[width=\textwidth]{../images/jointplot_burden_ih_100}[m
+[31m-		\caption[]%[m
+[31m-		{{\small 100 consecutive irrelevant results }}    [m
+[31m-		\label{fig:ih_200_ab}		[m
+[31m-[m
+[31m-	\end{subfigure}[m
+[31m-	\hfill[m
+[31m-	\begin{subfigure}[b]{0.475\textwidth}   [m
+[31m-		\centering [m
+[31m-		\includegraphics[width=\textwidth]{../images/jointplot_burden_ih_200.pdf}[m
+[31m-		\caption[]%[m
+[31m-		{{\footnotesize 200 consecutive irrelevant results }}    [m
+[31m-		\label{fig:ih_100_ab}[m
+[31m-	\end{subfigure}[m
+[31m-	[m
+[31m-	\caption{\small Distribution of recall and additional burden after each stopping criterion. Additional burden is the work saved when the criterion was triggered minus the work saved when the target was reached. Coloring of data points as in Fig. \ref{recall-wss}.}[m
+[31m-	\label{recall-burden}[m
+[31m-\end{figure*}[m
+[31m-[m
+[31m-[m
+[32m+[m		[32m\begin{subfigure}[b]{0.475\textwidth}[m[41m   [m
+[32m+[m			[32m\centering[m[41m [m
+[32m+[m			[32m\includegraphics[width=\textwidth]{2_figs_jointplot_burden_hyper.pdf}[m
+[32m+[m			[32m\caption[]%[m
+[32m+[m			[32m{{\small Hypergeometric sampling \\}}[m[41m    [m
+[32m+[m			[32m\label{fig:hyper_ab}[m
+[32m+[m		[32m\end{subfigure}[m
+[32m+[m		[32m\hfill[m
+[32m+[m		[32m\begin{subfigure}[b]{0.475\textwidth}[m[41m   [m
+[32m+[m			[32m\centering[m[41m [m
+[32m+[m			[32m\includegraphics[width=\textwidth]{2_figs_jointplot_burden_nrs.pdf}[m
+[32m+[m			[32m\caption[]%[m
+[32m+[m			[32m{{\footnotesize Ranked quasi-sampling}}[m[41m    [m
+[32m+[m			[32m\label{fig:nrs_ab}[m
+[32m+[m		[32m\end{subfigure}[m
+[32m+[m		[32m\hfill[m
+[32m+[m		[32m\vskip\baselineskip[m
+[32m+[m		[32m\begin{subfigure}[b]{0.475\textwidth}[m
+[32m+[m			[32m\centering[m
+[32m+[m			[32m\includegraphics[width=\textwidth]{2_figs_jointplot_burden_bir.pdf}[m
+[32m+[m			[32m\caption[Network2]%Example-Image[m
+[32m+[m			[32m{{\small Baseline Sampling}}[m[41m    [m
+[32m+[m			[32m\label{fig:bir_ab}[m
+[32m+[m		[32m\end{subfigure}[m
+[32m+[m		[32m\hfill[m
+[32m+[m		[32m\begin{subfigure}[b]{0.475\textwidth}[m[41m  [m
+[32m+[m			[32m\centering[m[41m [m
+[32m+[m			[32m\includegraphics[width=\textwidth]{2_figs_jointplot_burden_ih_50.pdf}[m
+[32m+[m			[32m\caption[]%[m
+[32m+[m			[32m{{\small 50 consecutive irrelevant results}}[m[41m    [m
+[32m+[m			[32m\label{fig:ih_50_ab}[m
+[32m+[m		[32m\end{subfigure}[m
+[32m+[m		[32m\vskip\baselineskip[m
+[32m+[m[41m		[m
+[32m+[m		[32m\begin{subfigure}[b]{0.475\textwidth}[m[41m   [m
+[32m+[m			[32m\centering[m[41m [m
+[32m+[m			[32m\includegraphics[width=\textwidth]{2_figs_jointplot_burden_ih_100.pdf}[m
+[32m+[m			[32m\caption[]%[m
+[32m+[m			[32m{{\small 100 consecutive irrelevant results }}[m[41m    [m
+[32m+[m			[32m\label{fig:ih_200_ab}[m[41m		[m
+[32m+[m[41m			[m
+[32m+[m		[32m\end{subfigure}[m
+[32m+[m		[32m\hfill[m
+[32m+[m		[32m\begin{subfigure}[b]{0.475\textwidth}[m[41m   [m
+[32m+[m			[32m\centering[m[41m [m
+[32m+[m			[32m\includegraphics[width=\textwidth]{2_figs_jointplot_burden_ih_200.pdf}[m
+[32m+[m			[32m\caption[]%[m
+[32m+[m			[32m{{\footnotesize 200 consecutive irrelevant results }}[m[41m    [m
+[32m+[m			[32m\label{fig:ih_100_ab}[m
+[32m+[m		[32m\end{subfigure}[m
+[32m+[m[41m		[m
+[32m+[m		[32m\caption{\small Distribution of recall and additional burden after each stopping criterion. Additional burden is the work saved when the criterion was triggered minus the work saved when the target was reached. Coloring of data points as in Fig. \ref{recall-wss}.}[m
+[32m+[m		[32m\label{recall-burden}[m
+[32m+[m	[32m\end{figure*}[m
+[32m+[m[41m	[m
+[32m+[m[41m	[m
+[32m+[m[41m	[m
+[32m+[m	[32mBoth the random sampling and the ranked sampling criteria achieve the target threshold of 95\% in more than 95\% of cases.[m[41m [m
+[32m+[m	[32mThat this is greater than 95\% is accounted for by the fact that random sampling sometimes begins after the target has been achieved, in which case the null hypothesis would be \text{a priori} impossible.[m
+[32m+[m	[32mThe ranked quasi-sampling criterion  outperforms the random sampling criterion with respect to both recall and work savings, saving a mean of 17\% of the work compared to 15\%, and missing the target in only 0.95\% compared to 3.29\% of cases. In theory, the ranked sampling criteria is conservative if the assumption holds that documents chosen by machine learning are not less likely to be relevant than those chosen at random. Based on our experiments, this assumption seems reasonable, and accounts for the higher recall. Because the ranked quasi-sampling criterion can flexibly choose its sample, whereas the random criterion has to wait for a random sample to be triggered, the criterion is also triggered earlier, as it can make use of more data. This accounts for the higher work savings.[m
+[32m+[m[41m	[m
+ 	[m
+[31m-	Both the random sampling and the pseudorandom sampling criteria achieve the target threshold of 95\% in more than 95\% of cases. In fact, the pseudorandom sampling criterion  outperforms the random sampling criterion with respect to both recall and work savings, saving a mean of 17\% of the work compared to 15\%, and missing the target in only 0.95\% compared to 3.29\% of cases. In theory, the pseudorandom sampling criteria is conservative if the assumption holds that documents chosen by machine learning are not less likely to be relevant than those chosen at random. Based on our experiments, this assumption seems reasonable, and accounts for the higher recall. Because the pseudorandom sampling criterion can flexibly choose its sample, whereas the random criterion has to wait for a random sample to be triggered, the criterion is also triggered earlier, as it can make use of more data. This accounts for the higher work savings.[m
+ 	[m
+ 	The baseline sampling criteria (Figure \ref{fig:bir}) misses the 95\% recall target in 39.67\% of cases, while the most common work saving is 0\%. This is in line with our expectations that, due to random sampling error, the expected number of documents will often be over-estimated or under-estimated, resulting in zero work savings or poor recall.[m
+ 	[m
+ 	The Heuristic stopping criteria, both for 50 consecutive irrelevant results (Figure \ref{fig:ih_50} - IH50), and for 200 irrelevant results (Figure \ref{fig:ih_200}) also perform unreliably. Although the mean work saved for IH50 is 41\%, the target is missed in 39\% of cases. The cases below the horizontal grey line indicate instances where work has been saved at the expense of achieving the recall target.[m
+ 	[m
+ 	\begin{figure}[m
+[31m-		\includegraphics[width=0.9\linewidth]{../images/wss_nrs}[m
+[31m-		\caption{Work saved for the pseudorandom sampling method in each dataset. Labels show the number of relevant documents and the total number of documents. The datasets are presented in order of the number of documents. The whiskers represent the 5th and 95th percentiles. The grey line shows work savings of 5\%. }[m
+[32m+[m		[32m\includegraphics[width=0.9\linewidth]{2_figs_wss_nrs.pdf}[m
+[32m+[m		[32m\caption{Work saved for the ranked quasi-sampling method in each dataset. Labels show the number of relevant documents and the total number of documents. The datasets are presented in order of the number of documents. The whiskers represent the 5th and 95th percentiles. The grey line shows work savings of 5\%. }[m
+ 		\label{wss}[m
+ 	\end{figure}[m
+ 	[m
+[31m- 	\begin{figure*}[m
+[32m+[m	[32m\begin{figure*}[m
+ 		\centering[m
+ 		\begin{subfigure}[b]{0.475\textwidth}[m
+ 			\centering[m
+[31m-			\includegraphics[width=\textwidth]{../images/h0_paths_Radjenovic.pdf}[m
+[32m+[m			[32m\includegraphics[width=\textwidth]{2_figs_h0_paths_Radjenovic.pdf}[m
+ 			\caption[Network2]%Example-Image[m
+ 			{{\small Radjenovic}}    [m
+ 			\label{fig:Radjenovic}[m
+[36m@@ -594,15 +659,15 @@[m [mThese last examples are promising developments, but fail to take into account th[m
+ 		\hfill[m
+ 		\begin{subfigure}[b]{0.475\textwidth}  [m
+ 			\centering [m
+[31m-			\includegraphics[width=\textwidth]{../images/h0_paths_ProtonBeam.pdf}[m
+[32m+[m			[32m\includegraphics[width=\textwidth]{2_figs_h0_paths_ProtonBeam.pdf}[m
+ 			\caption[]%[m
+ 			{{\small ProtonBeam}}    [m
+ 			\label{fig:ProtonBeam}[m
+ 		\end{subfigure}[m
+[31m-	\vskip\baselineskip[m
+[32m+[m		[32m\vskip\baselineskip[m
+ 		\begin{subfigure}[b]{0.475\textwidth}[m
+ 			\centering[m
+[31m-			\includegraphics[width=\textwidth]{../images/h0_paths_Statins.pdf}[m
+[32m+[m			[32m\includegraphics[width=\textwidth]{2_figs_h0_paths_Statins.pdf}[m
+ 			\caption[Network2]%Example-Image[m
+ 			{{\small Statins}}    [m
+ 			\label{fig:Statins}[m
+[36m@@ -610,19 +675,19 @@[m [mThese last examples are promising developments, but fail to take into account th[m
+ 		\hfill[m
+ 		\begin{subfigure}[b]{0.475\textwidth}  [m
+ 			\centering [m
+[31m-			\includegraphics[width=\textwidth]{../images/h0_paths_Triptans.pdf}[m
+[32m+[m			[32m\includegraphics[width=\textwidth]{2_figs_h0_paths_Triptans.pdf}[m
+ 			\caption[]%[m
+ 			{{\small Triptans}}    [m
+ 			\label{fig:Triptans}[m
+ 		\end{subfigure}[m
+[31m-	[m
+[32m+[m[41m		[m
+ 		\caption{\small The path of recall (yellow) and the p-value of H0 for four different datasets} [m
+ 		\label{H0paths}[m
+ 	\end{figure*}[m
+ 	[m
+ 	In figure \ref{recall-burden} we rescale the x axis, calling it additional burden, which is simply the work saved when the criterion is triggered minus the work saved when the recall target was actually achieved. This measure indicates whether the stopping criterion was triggered too early (negative values), or too late (positive values). The figure directly highlights the tradeoffs involved in deciding when to stop screening: For our criteria, there is mostly a small additional burden which comes with the necessity to make sure the desired recall target has been reached and reject the null hypothesis that this has not been the case. For the other criteria, there are many cases in which additional burden is negative, i.e. the criterion has been triggered too early. In these cases, however, the desired recall is hardly ever reached.[m
+ 	[m
+[31m-	To help explain the different work savings that were observed in our experiments, we show the distribution of work savings from our pseudorandom criterion for each dataset in figure \ref{wss}. In general, higher work savings are possible when the total number of documents is larger. However, in datasets with a low proportion of relevant documents, many documents need to be screened to achieve a high confidence that there are only few relevant documents remaining in the unseen ones. Therefore, smaller work savings are possible. [m
+[32m+[m	[32mTo help explain the different work savings that were observed in our experiments, we show the distribution of work savings from our ranked quasi-sampling criterion for each dataset in figure \ref{wss}. In general, higher work savings are possible when the total number of documents is larger. However, in datasets with a low proportion of relevant documents, many documents need to be screened to achieve a high confidence that there are only few relevant documents remaining in the unseen ones. Therefore, smaller work savings are possible.[m[41m [m
+ 	[m
+ 	Figure \ref{H0paths} shows the recall and the probability of the null hypothesis for the best performing iteration of four datasets. Although the 95\% recall target is achieved very quickly in the Radjenovic dataset, the null hypothesis cannot be excluded until much later. This is because the dataset has only 47 relevant documents out of a population of 5,999. After the 95\% recall target was achieved, 45 out of 47 relevant documents had been seen and 5,029 documents remained. The null hypothesis was therefore that 3 or more of these 5,029 documents were relevant, which requires a lot of evidence to disprove. The burden of proof was smaller in the case of the Proton Beam dataset: at the point that the 95\% recall threshold was reached, the null hypothesis to disprove was that a minimum of 13 out of 3,369 remaining documents were relevant. [m
+ 	[m
+[36m@@ -632,32 +697,43 @@[m [mThese last examples are promising developments, but fail to take into account th[m
+ 	[m
+ 	Our results show that it is possible to use machine learning to achieve a given level of recall with a given level of confidence. The tradeoff for achieving recall reliably is that the work saving achieved is less than the maximum possible work saving. However, for large datasets with a significant proportion of relevant documents, the additional effort required to satisfy the criterion will be small compared to the work saved by using machine learning. This makes the approach well suited to broad topics with lots of literature. In other words, it is precisely where machine learning will be most useful that the additional effort will be small.[m
+ 	[m
+[31m-	Different use cases for machine learning enhanced screening may also carry different requirements for recall, or different tolerances for uncertainty. These can be flexibly accommodated within our stopping criterion. Importantly, the ability to make probabilistic statements about the chance of achieving a given recall target makes it possible to clearly communicate the implications of using machine learning enhanced screening to readers and reviewers who are not machine learning specialists. This is extremely important in live systematic reviews. [m
+[32m+[m	[32mDifferent use cases for machine learning enhanced screening may also carry different requirements for recall, or different tolerances for uncertainty. These can be flexibly accommodated within our stopping criterion. Importantly, the ability to make probabilistic statements about the chance of achieving a given recall target makes it possible to clearly communicate the implications of using machine learning enhanced screening to readers and reviewers who are not machine learning specialists. This is extremely important in live systematic reviews.[m
+ 	[m
+ 	Our criteria have the further advantage that they are independent of the choice or performance of the machine learning model. If a model performs badly at discerning relevant from irrelevant results, the only consequence will be that the work saved will be low. With other criteria this may result in poor recall. [m
+ 	When using machine learning for screening, poor recall can result in biased results, while low work savings represent no loss to the reviewer as compared to not using machine learning.[m
+ 	[m
+[32m+[m	[32mOne caveat in the derivation of our criteria is that we did not address the potential problem of multiple testing formally. Such a derivation is mathematically challenging and beyond the scope of this paper. However, the performance of the criteria shows that this is of limited practical concern. Formally describing screening procedures with iterative testing should be a next step towards even more rigorous stopping criteria and should be fully worked out in future research.[m
+[32m+[m[41m	[m
+ 	So far, systematic review standards have no way of accommodating screening with machine learning. [m
+ 	We hope that the reliability and clarity of reporting offered by our stopping criteria make them suitable for incorporation into standards, so that machine learning for systematic review screening can fulfil its promise of reducing workload and making more ambitious reviews tractable.[m
+ 	[m
+ 	\section*{Conclusion}[m
+ 	[m
+[31m-	This paper demonstrates the unsuitability of existing stopping criteria for machine learning approaches to document screening, and proposes a simple method that delivers reliable recall, independent of machine learning approach or model performance. Our robust statistical stopping criteria allow users to easily communicate the implications of their use of machine learning, making machine learning enhanced screening ready for live reviews.[m
+[32m+[m	[32mThis paper demonstrates the drawbacks of existing stopping criteria for machine learning approaches to document screening, particularly with regard to reliability. We propose a simple method that delivers reliable recall, independent of machine learning approach or model performance. Our robust statistical stopping criteria allow users to easily communicate the implications of their use of machine learning, making machine learning enhanced screening ready for live reviews.[m
+ 	[m
+ 	[m
+[31m-\begin{backmatter}[m
+[31m-	[m
+[31m-	\section*{Competing interests}[m
+[31m-	The authors declare that they have no competing interests.[m
+[31m-	[m
+[31m-	\section*{Author's contributions}[m
+[31m-	MC designed the research and conducted the experiments. FMH contributed to the development of the statistical basis for the stopping criterion. Both authors wrote and edited the manuscript.[m
+[31m-	[m
+[31m-	\section*{Acknowledgements}[m
+[31m-	Max Callaghan is supported by a PhD scholarship from the Heinrich Böll Foundation. Finn M\"{u}ller-Hansen acknowledges funding from the German Federal Ministry of Research and Education within the Strategic Scenario Analysis (START) project (grant reference: 03EK3046B).[m
+[32m+[m	[32m\begin{backmatter}[m
+ 		[m
+[31m-	\bibliography{mendeley}[m
+[31m-	\bibliographystyle{vancouver}[m
+[31m-	[m
+[31m-\end{backmatter}[m
+[32m+[m		[32m\section*{Ethics approval}[m
+[32m+[m		[32mNot applicable.[m
+[32m+[m[41m		[m
+[32m+[m		[32m\section*{Consent for publication}[m
+[32m+[m		[32mNot applicable.[m
+[32m+[m[41m		[m
+[32m+[m		[32m\section*{Availability of data and materials}[m[41m [m
+[32m+[m		[32mAll computational steps required to reproduce this analysis are documented online at \url{https://github.com/mcallaghan/rapid-screening}.[m
+[32m+[m[41m		[m
+[32m+[m		[32m\section*{Competing interests}[m
+[32m+[m		[32mThe authors declare that they have no competing interests.[m
+[32m+[m[41m		[m
+[32m+[m		[32m\section*{Author's contributions}[m
+[32m+[m		[32mMC designed the research and conducted the experiments. FMH contributed to the development of the statistical basis for the stopping criterion. Both authors wrote and edited the manuscript.[m
+[32m+[m[41m		[m
+[32m+[m		[32m\section*{Acknowledgements}[m
+[32m+[m		[32mMax Callaghan is supported by a PhD scholarship from the Heinrich Böll Foundation. Finn M\"{u}ller-Hansen acknowledges funding from the German Federal Ministry of Research and Education within the Strategic Scenario Analysis (START) project (grant reference: 03EK3046B).[m
+[32m+[m[41m		[m
+[32m+[m		[32m\bibliography{3_bib_mendeley}[m
+[32m+[m		[32m\bibliographystyle{vancouver}[m
+[32m+[m[41m		[m
+[32m+[m	[32m\end{backmatter}[m
+ \end{document}[m
+\ No newline at end of file[m

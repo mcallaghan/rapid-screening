@@ -103,7 +103,7 @@
 			%%                                          %%
 			%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 			
-			\title{Robust Statistical Stopping Criteria for Automated Screening in Systematic Reviews}
+			\title{Statistical Stopping Criteria for Automated Screening in Systematic Reviews}
 			
 			%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 			%%                                          %%
@@ -195,7 +195,7 @@
 				Active learning for systematic review screening promises to reduce the human effort required to identify relevant documents for a systematic review. 
 				Machines and humans  work together, with humans providing training data, and the machine optimising the documents that the humans screen. This enables the identification of all relevant documents after viewing only a fraction of the total documents. 
 				However, current approaches lack robust stopping criteria, so that reviewers do not know when they have seen all or a certain proportion of relevant documents. This means that such systems are hard to implement in live reviews. 
-				This paper introduces a workflow with robust and flexible statistical stopping criteria, which offer real work reductions on the basis of a given confidence level of reaching a given recall.
+				This paper introduces a workflow with flexible statistical stopping criteria, which offer real work reductions on the basis of rejecting a hypothesis of having missed a given recall target with a given level of confidence.
 				The stopping criteria are shown on test datasets to achieve a reliable level of recall, while still providing work reductions of on average 17\%. Other methods proposed previously are shown to provide inconsistent recall and work reductions across datasets.
 				
 			\end{abstract}
@@ -290,7 +290,7 @@
 	
 	This study proposes a system for estimating the recall based on random sampling of remaining documents. 
 	We use a simple statistical method to iteratively test a null hypothesis that the recall achieved is less than a given target recall. If the hypothesis can be rejected, we conclude that the recall target has been achieved with a given confidence level and screening can be stopped.
-	This allows AL users to predefine a target in terms of uncertainty and recall, so that they can make transparent, easily communicable statements like ``A recall of more than 95\% was achieved with a confidence of more than 95\%''.
+	This allows AL users to predefine a target in terms of uncertainty and recall, so that they can make transparent, easily communicable statements like ``We reject the null hypothesis that we achieve a recall of less than 95\% with a significance level of 5\%''.
 	
 	
 	
@@ -378,10 +378,10 @@
 	Finally, Howard et al. \cite{Howard2020} present a method to estimate recall based on the number of irrelevant documents $D$ observed in a list of documents since the $\delta th$ previous relevant document. 
 	They reason that this should follow the negative binomial distribution based on the proportion of remaining relevant documents $p$, and use this information to estimate $\hat{p}$, and with this, the total number of relevant articles and the estimated recall.
 	
-	However, their method does not quantify uncertainty, but can only claim that the method ``\textit{tends} to result in a conservative estimate of recall'' (emphasis ours). This is not guaranteed by the criterion itself but rather a finding of the simulation with example datasets. Further the authors do not give sufficient information to reproduce their results, providing neither code (they describe their own proprietary software), nor an equation for $\hat{p}$. Additionally, the criterion requires a tuning parameter $\delta$, which users may have insufficient information to set optimally.
+	However, their method does not quantify uncertainty, but can only claim that the method ``\textit{tends} to result in a conservative estimate of recall'' (emphasis ours). This is not guaranteed by the criterion itself but rather a finding of the simulation with example datasets. Further, the authors do not give sufficient information to reproduce their results, providing neither code (they describe their own proprietary software), nor an equation for $\hat{p}$. Additionally, the criterion requires a tuning parameter $\delta$, which users may have insufficient information to set optimally.
 	Lastly, because screening is a form of sampling without replacement, the negative hypergeometric distribution should be preferred to the negative binomial, even though the latter can be a good approximation for cases with large numbers of documents.
 	
-	These last examples are promising developments, but they all fail to take into account the needs of live systematic reviews, where the reliability of and ease of communication about recall are paramount, and the results are independent of model performance. In the following, we explain our own method, which provides clearly communicable estimates of recall, which manage uncertainty in a way robust to model performance.
+	These last examples are promising developments, but they all fail to take into account the needs of live systematic reviews, where the reliability of and ease of communication about recall are paramount, and the results are independent of model performance. In the following, we explain our own method, which provides clearly communicable estimates of recall, and which manage uncertainty in a way robust to model performance.
 	
 	\subsection*{Methods}
 	
@@ -407,7 +407,7 @@
 	N = N_{tot} - N_{AL}
 	\end{equation} 
 	
-	We refer to the number  of relevant documents seen during active learning as $\rho_{AL}$, and the number of remaining relevant documents as $K$. We do not know the value of $K$ but know that it is given by the total number of relevant documents minus the number of relevant documents seen during active learning.
+	We refer to the number of relevant documents seen during active learning as $\rho_{AL}$, and the number of remaining relevant documents as $K$. We do not know the value of $K$ but know that it is given by the total number of relevant documents minus the number of relevant documents seen during active learning.
 	
 	\begin{equation}
 	K = \rho_{tot} - \rho_{AL}
@@ -428,6 +428,12 @@
 	\label{eq:null_hypothesis}
 	\end{equation}
 	
+	Accordingly, the alternative hypothesis is that recall is equal to or greater than our target: 
+	
+	\begin{equation}
+	H_1 : \tau \geq \tau_{tar}
+	\end{equation}
+	
 	Because we are sampling without replacement, we can use the hypergeometric distribution to find out the probability of observing $k$ relevant documents in a sample of $n$ documents from a population of $N$ documents of which $K$ are relevant. We know that $k$ is distributed hypergeometrically:
 	
 	\begin{equation}
@@ -441,10 +447,10 @@
 	\end{equation}
 	
 	This equation is derived by combining Eqs.~\ref{eq:recall-def} and \ref{eq:rho_seen}. Because $k$ can only take integer values, $K_{tar}$ is the smallest integer that satisfies the inequality in Eq.~\ref{eq:null_hypothesis}.
-	With $K_{tar}$, we can reformulate our null hypothesis: the true number of relevant documents in the sample is greater than our hypothetical value.
+	With $K_{tar}$, we can reformulate our null hypothesis: the true number of relevant documents in the sample is greater than or equal to our hypothetical value.
 	
 	\begin{equation}
-	H_0 : K > K_{tar}
+	H_0 : K \geq K_{tar}
 	\end{equation}
 	
 	We test this by calculating the probability of observing $k$ or fewer relevant documents from the hypergeometric distribution given by $K_{tar}$, using the cumulative probability mass function.
@@ -456,9 +462,16 @@
 	
 	Because the cumulative probability mass function $P(X \leq k)$ is decreasing with increasing $K$, this gives the maximum probability of observing $k$ for all values of $K$ compatible with our null hypothesis. Similar arguments have been made to derive confidence intervals for estimating the parameter $K$ in the hypergeometric distribution function \citep{Buonaccorsi1987, Sahai1995} and the derivation of an equivalent criterion could use the upper limit of such a confidence interval of an estimated $K$ from the observation of $k$.
 	
-	We can reject our null hypothesis and stop screening if the maximum probability of obtaining our observed results given our null hypothesis $p$ is below $1-\alpha$. This means, we can report the likelihood that we achieve a recall above our target as being more than $\alpha$ \footnote{The notebook, \url{https://github.com/mcallaghan/rapid-screening/blob/master/analysis/hyper_criteria_theory.ipynb}, in the github repository accompanying this paper contains a step by step explanation of this method with code and examples}.
+	We can reject our null hypothesis and stop screening if the maximum probability of obtaining our observed results given our null hypothesis $p$ is below $1-\alpha$ \footnote{The notebook, \url{https://github.com/mcallaghan/rapid-screening/blob/master/analysis/hyper_criteria_theory.ipynb}, in the github repository accompanying this paper contains a step by step explanation of this method with code and examples}. To further investigate the accuracy of the test, we perform an experiment drawing 1 million random samples in 6 scenarios with different characteristics. We vary the value of $\rho_{AL}$ to simulate starting random sampling with different levels of recall achieved.
 	
+	\begin{figure}
+		\centering
+		\includegraphics[width=\linewidth]{2_figs_hyper_validation.png}
+		\caption{The distribution of achieved recall values given our random sampling stopping criterion for 6 scenarios with different recall values at the start of sampling.}
+		\label{fig:hyper-valid}
+	\end{figure}	
 	
+	Figure \ref{fig:hyper-valid} shows that in each case, as long as recall is lower than the target recall when sampling begins, the percentage of times that the criteria is triggered too early is within two tenths of a percentage point of 5\% and the the 5th percentile of achieved recall values is within two tenths of a percentage point of the target recall 95\%. 
 	
 	\subsubsection*{Ranked quasi-sampling}
 	
@@ -471,7 +484,7 @@
 	$\rho_{AL}$ to the number of relevant documents seen when $i$ documents had been seen,
 	and $k$ to the number of relevant documents seen since $i$ documents had been seen, and calculate $p$ according to Eq.~\ref{eq:p-value}.
 	We compute $p$ for all sets $A_i$ with $i \in {N_{seen}-1 \dots 1}$.
-	This gives us a vector $\bm{p}$, representing the values of $p$ which would have been estimated at each point at which we could have stopped active learning and began random sampling. The lowest probability of our null hypothesis being true that we would have thereby obtained is given by $p_{min}$. With the vectorized implementation included in our accompanying code, these calculations are completed in less than the time it would take a human to code the next document.
+	This gives us a vector $\bm{p}$, representing the values of $p$ which would have been estimated at each point at which we could have stopped active learning and began random sampling. The point at which the p-value for our null hypothesis is lowest is given by $p_{min}$. With the vectorized implementation included in our accompanying code, these calculations are completed in less than the time it would take a human to code the next document.
 	
 	First, we use this method as a useful heuristic for deciding when to stop active learning, and switch to random sampling. For this, we choose a higher threshold for the likelihood, $p_{min} < 1-\frac{\alpha}{2}$. Second, we use the same ranked quasi-sampling as an independent stopping criterion, by continuing screening with active learning until $p_{min} < 1 - \alpha$. We present the results of this second procedure separately below.
 	
@@ -479,6 +492,8 @@
 	
 	
 	\medskip
+	
+	
 	
 	\begin{figure}
 		\includegraphics[width=0.7\linewidth]{2_figs_flow.pdf}
@@ -514,7 +529,7 @@
 	
 	\section*{Results}
 	
-	Figure \ref{recall-wss} shows the actual recall and work savings achieved when each stopping criteria has been satisfied. 
+	Figure \ref{recall-wss} shows the actual recall and work savings achieved when each stopping criterion has been satisfied. 
 	For comparison, we also include the results that would have been achieved with \textit{a priori} knowledge of the data, that is, the work saved when the 95\% recall target was actually reached. In a live systematic review, reviewers would never know when this had been reached, but these are the work savings most often reported in machine learning for systematic review screening studies.
 	
 	
@@ -632,12 +647,12 @@
 	
 	
 	Both the random sampling and the ranked sampling criteria achieve the target threshold of 95\% in more than 95\% of cases. 
-	That this is greater than 95\% is accounted for by the fact that random sampling sometimes begins after the target has been achieved, in which case the null hypothesis would be \text{a priori} impossible.
+	That this is greater than 95\% is accounted for by the fact that random sampling sometimes begins after the target recall has been achieved, in which case the null hypothesis would be \text{a priori} impossible.
 	The ranked quasi-sampling criterion  outperforms the random sampling criterion with respect to both recall and work savings, saving a mean of 17\% of the work compared to 15\%, and missing the target in only 0.95\% compared to 3.29\% of cases. In theory, the ranked sampling criteria is conservative if the assumption holds that documents chosen by machine learning are not less likely to be relevant than those chosen at random. Based on our experiments, this assumption seems reasonable, and accounts for the higher recall. Because the ranked quasi-sampling criterion can flexibly choose its sample, whereas the random criterion has to wait for a random sample to be triggered, the criterion is also triggered earlier, as it can make use of more data. This accounts for the higher work savings.
 	
 	
 	
-	The baseline sampling criteria (Figure \ref{fig:bir}) misses the 95\% recall target in 39.67\% of cases, while the most common work saving is 0\%. This is in line with our expectations that, due to random sampling error, the expected number of documents will often be over-estimated or under-estimated, resulting in zero work savings or poor recall.
+	The baseline sampling criteron (Figure \ref{fig:bir}) misses the 95\% recall target in 39.67\% of cases, while the most common work saving is 0\%. This is in line with our expectations that, due to random sampling error, the expected number of documents will often be over-estimated or under-estimated, resulting in zero work savings or poor recall.
 	
 	The Heuristic stopping criteria, both for 50 consecutive irrelevant results (Figure \ref{fig:ih_50} - IH50), and for 200 irrelevant results (Figure \ref{fig:ih_200}) also perform unreliably. Although the mean work saved for IH50 is 41\%, the target is missed in 39\% of cases. The cases below the horizontal grey line indicate instances where work has been saved at the expense of achieving the recall target.
 	
@@ -689,7 +704,7 @@
 	
 	To help explain the different work savings that were observed in our experiments, we show the distribution of work savings from our ranked quasi-sampling criterion for each dataset in figure \ref{wss}. In general, higher work savings are possible when the total number of documents is larger. However, in datasets with a low proportion of relevant documents, many documents need to be screened to achieve a high confidence that there are only few relevant documents remaining in the unseen ones. Therefore, smaller work savings are possible. 
 	
-	Figure \ref{H0paths} shows the recall and the probability of the null hypothesis for the best performing iteration of four datasets. Although the 95\% recall target is achieved very quickly in the Radjenovic dataset, the null hypothesis cannot be excluded until much later. This is because the dataset has only 47 relevant documents out of a population of 5,999. After the 95\% recall target was achieved, 45 out of 47 relevant documents had been seen and 5,029 documents remained. The null hypothesis was therefore that 3 or more of these 5,029 documents were relevant, which requires a lot of evidence to disprove. The burden of proof was smaller in the case of the Proton Beam dataset: at the point that the 95\% recall threshold was reached, the null hypothesis to disprove was that a minimum of 13 out of 3,369 remaining documents were relevant. 
+	Figure \ref{H0paths} shows the recall and the p-value for the null hypothesis for the the iteration where the recall target is reached first for four datasets. Although the 95\% recall target is achieved very quickly in the Radjenovic dataset, the null hypothesis cannot be excluded until much later. This is because the dataset has only 47 relevant documents out of a population of 5,999. After the 95\% recall target was achieved, 45 out of 47 relevant documents had been seen and 5,029 documents remained. The null hypothesis was therefore that 3 or more of these 5,029 documents were relevant, which requires a lot of evidence to disprove. The burden of proof was smaller in the case of the Proton Beam dataset: at the point that the 95\% recall threshold was reached, the null hypothesis to disprove was that a minimum of 13 out of 3,369 remaining documents were relevant. 
 	
 	The Statins and Triptans datasets show how the criterion performs when the machine learning model has performed poorly in predicting relevant results. In each case, 95\% recall is achieved with close to 20\% of documents remaining. With fewer documents remaining, it takes fewer screening decisions to rule out the possibility that the number of relevant documents left is incompatible with the achievement of the recall target.
 	
@@ -697,19 +712,19 @@
 	
 	Our results show that it is possible to use machine learning to achieve a given level of recall with a given level of confidence. The tradeoff for achieving recall reliably is that the work saving achieved is less than the maximum possible work saving. However, for large datasets with a significant proportion of relevant documents, the additional effort required to satisfy the criterion will be small compared to the work saved by using machine learning. This makes the approach well suited to broad topics with lots of literature. In other words, it is precisely where machine learning will be most useful that the additional effort will be small.
 	
-	Different use cases for machine learning enhanced screening may also carry different requirements for recall, or different tolerances for uncertainty. These can be flexibly accommodated within our stopping criterion. Importantly, the ability to make probabilistic statements about the chance of achieving a given recall target makes it possible to clearly communicate the implications of using machine learning enhanced screening to readers and reviewers who are not machine learning specialists. This is extremely important in live systematic reviews.
+	Different use cases for machine learning enhanced screening may also carry different requirements for recall, or different tolerances for uncertainty. These can be flexibly accommodated within our stopping criterion. Importantly, the ability to make statements about the authors' confidence in achieving a given recall target makes it possible to clearly communicate the implications of using machine learning enhanced screening to readers and reviewers who are not machine learning specialists. This is extremely important in live systematic reviews.
 	
 	Our criteria have the further advantage that they are independent of the choice or performance of the machine learning model. If a model performs badly at discerning relevant from irrelevant results, the only consequence will be that the work saved will be low. With other criteria this may result in poor recall. 
 	When using machine learning for screening, poor recall can result in biased results, while low work savings represent no loss to the reviewer as compared to not using machine learning.
 	
-	One caveat in the derivation of our criteria is that we did not address the potential problem of multiple testing formally. Such a derivation is mathematically challenging and beyond the scope of this paper. However, the performance of the criteria shows that this is of limited practical concern. Formally describing screening procedures with iterative testing should be a next step towards even more rigorous stopping criteria and should be fully worked out in future research.
+	One caveat in the derivation of our criteria is that we did not address the problem of multiple testing formally. Such a derivation is mathematically challenging and beyond the scope of this paper. However, the performance of the criteria shows that this is of limited practical concern. Formally describing screening procedures with iterative testing should be a next step towards even more rigorous stopping criteria and should be fully worked out in future research.
 	
 	So far, systematic review standards have no way of accommodating screening with machine learning. 
 	We hope that the reliability and clarity of reporting offered by our stopping criteria make them suitable for incorporation into standards, so that machine learning for systematic review screening can fulfil its promise of reducing workload and making more ambitious reviews tractable.
 	
 	\section*{Conclusion}
 	
-	This paper demonstrates the drawbacks of existing stopping criteria for machine learning approaches to document screening, particularly with regard to reliability. We propose a simple method that delivers reliable recall, independent of machine learning approach or model performance. Our robust statistical stopping criteria allow users to easily communicate the implications of their use of machine learning, making machine learning enhanced screening ready for live reviews.
+	This paper demonstrates the drawbacks of existing stopping criteria for machine learning approaches to document screening, particularly with regard to reliability. We propose a simple method that delivers reliable recall, independent of machine learning approach or model performance. Our statistical stopping criteria allow users to easily communicate the implications of their use of machine learning, making machine learning enhanced screening ready for live reviews.
 	
 	
 	\begin{backmatter}
