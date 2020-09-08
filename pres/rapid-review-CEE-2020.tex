@@ -37,6 +37,14 @@
 \begin{document}
 	
 \setbeamertemplate{caption}{\raggedright\insertcaption\par}
+\newcommand{\backupbegin}{
+	\newcounter{framenumberappendix}
+	\setcounter{framenumberappendix}{\value{framenumber}}
+}
+\newcommand{\backupend}{
+	\addtocounter{framenumberappendix}{-\value{framenumber}}
+	\addtocounter{framenumber}{\value{framenumberappendix}} 
+}
 	
 	\begin{frame}
 	\titlepage
@@ -442,10 +450,50 @@ Estimating the number of relevant results based on a sample means we often (dras
 
 \end{frame}
 
+\appendix
+\backupbegin
+
 
 \begin{frame}{References}
 \tiny
 \bibliography{../manuscript/3_bib_mendeley}
 \end{frame}
+
+\begin{frame}
+	\begin{columns}
+		\begin{column}{0.5\linewidth}
+			\begin{figure}
+				\includegraphics[width=\linewidth]{../manuscript/2_figs_h0_paths_Radjenovic}
+			\end{figure}
+		\end{column}
+	
+		\begin{column}{0.5\linewidth}
+			\begin{figure}
+				\includegraphics[width=\linewidth]{../manuscript/2_figs_h0_paths_ProtonBeam}
+			\end{figure}
+		\end{column}
+	\end{columns}
+\end{frame}
+
+\begin{frame}
+	\begin{columns}
+		\begin{column}{0.382\linewidth}
+			\begin{figure}
+				\includegraphics[width=\linewidth]{../manuscript/2_figs_hyper_validation}
+			\end{figure}
+		\end{column}
+		\begin{column}{0.618\linewidth}
+			
+			During review, potential theoritical problems were raised around sequential testing.
+			
+			\begin{itemize}
+				\item We show that the test performs well over a million simulations in different scenarios 
+			\end{itemize}
+			
+		\end{column}
+	\end{columns}
+\end{frame}
+
+\backupend
 
 \end{document}
