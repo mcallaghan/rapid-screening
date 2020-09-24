@@ -71,6 +71,12 @@ h0_p <- function(screened, N, recall_target) {
   # How many relevant documents have been seen
   r_seen <- sum(screened)
   
+  # what's the minimum number of relevant documents there would have to be in the 
+  # unseen documents + the sample in order for our target to be missed
+  get_khat <- function(r_ML, r_seen, recall_target){
+    return(floor(r_seen/recall_target-r_ML+1))
+  }
+  
   # Sample size
   k_vec <- seq(1:length(screened))
   # number of relevant documents in sample
