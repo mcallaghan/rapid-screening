@@ -1,6 +1,6 @@
 ---
 title: "Active learning stopping criteria"
-output: html_notebook
+output: html_document
 ---
 
 In an active learning pipeline for screening citations, humans screen documents, machines learn from these screening decisions what a relevant document looks like, and humans keep screening the documents predicted by the machine to be most relevant.
