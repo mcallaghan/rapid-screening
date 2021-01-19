@@ -1,11 +1,14 @@
 *.nb.html*
 manuscript/Revision*
+manuscript/proofs*
 manuscript/response*
 manuscript/coverletter*
 manuscript/letterbib*
 manuscript/Review_Stopping*
 manuscript/Response*
 results/results_fr.csv
+*.dvi
+*.vrb
 *.bst
 *.pyc
 *__pycache__*
