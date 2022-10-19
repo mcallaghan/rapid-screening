@@ -17,7 +17,7 @@ classoption: "aspectratio=169"
 set.seed(5)
 knitr::opts_chunk$set(cache = F)
 knitr::opts_chunk$set(global.par = TRUE)
-options(max.print = 20)
+options(max.print = 35)
 xlab <- "Documents Screened" 
 ylab <- "Relevant documents identified"
 ```
@@ -41,13 +41,13 @@ Numerous studies have used datasets from previous reviews to show that machine l
 
 However, most of the work savings are just *potential* work savings predicated on *a priori* knowledge of how many relevant studies we are looking for.
 
-To achieve these savings, we need to know when to stop screening: and existing approaches to deciding this are insufficient [@Shemilt2014; @Howard2020; @Jonnalagadda2013]. We need to to confident that we don't miss studies, and we need to be able to communicate this confidence. 
+To achieve these savings, we need to know when to stop screening: and existing approaches to deciding this are insufficient [@Shemilt2014; @Howard2020; @Jonnalagadda2013]. We need to be confident that we don't miss studies, and we need to be able to communicate this confidence. 
 
 
 
 ## Screening documents 
 
-We can set up a toy dataset with 1,000 documents ($N_{tot}$), of which 100 are relevant ($\rho_{tot}$)
+We can set up a toy dataset with 2,000 documents ($N_{tot}$), of which 100 are relevant ($\rho_{tot}$)
 
 ```{r sample}
 N_tot <- 2000 # total documents
@@ -55,8 +55,9 @@ r_tot <- 100 # total relevant documents
 
 docs <- rep(0,N_tot)
 docs[1:r_tot] <- 1
-docs <- sample(docs)
+docs <- sample(docs, replace=F)
 docs
+sum(docs)
 
 ```
 
@@ -71,7 +72,7 @@ We usually accept that we won't identify every last document and aim for a recal
 
 ## Screening documents
 
-If we screen these at random, we will see 95% recall after seeing ~95% of all relevant documents
+If we screen these at random, we will see 95% recall after seeing ~95% of all documents
 
 \columnsbegin
 
@@ -157,27 +158,6 @@ abline(h=r_tot*.95)
 
 ## Screening documents with machine learning
 
-\columnsbegin
-
-\column{0.5\textwidth}
-
-It's also easy to tell when 95% recall has been achieved when we know how many relevant documents there are
-
-\column{0.5\textwidth}
-```{r echo=F}
-par(pty="s")
-plot(
-  cumsum(ordered_docs), 
-  xlab="Documents Screened", 
-  ylab="Relevant documents identified"
-)
-abline(h=r_tot*.95)
-```
-
-\columnsend
-
-## Screening documents with machine learning
-
 But if we descale the y axis, it's not so easy to tell when we have achieved 95% recall
 
 \columnsbegin
@@ -220,10 +200,12 @@ With a bit of maths, we can calculate when it is safe to stop, if we want to ach
 
 ```{r echo=F}
 par(pty="s")
+cols = c(rep("black",cutoff),rep("red",N_tot-cutoff))
 plot(
   cumsum(ordered_docs), 
   xlab="Documents Screened", 
-  ylab="Relevant documents identified"
+  ylab="Relevant documents identified",
+  col=cols
 )
 abline(h=r_tot*.95)
 ```
@@ -266,7 +248,7 @@ Let's return to a point that looked like a nice place to stop
 \column{0.4\textwidth}
 ```{r echo=F}
 par(pty="s")
-r_al <- cumsum(ordered_docs[1:cutoff])[cutoff]
+r_al <- sum(ordered_docs[1:cutoff])
 N_al <- cutoff
 K <- r_tot-r_al 
 N <- N_tot - N_al
@@ -285,7 +267,7 @@ $N_{AL}$ is the number of documents screened after active learning, and $\rho_{A
 params <- list(
   N_al = cutoff,
   N = N_tot - N_al,
-  r_al = cumsum(ordered_docs[1:cutoff])[cutoff],
+  r_al = sum(ordered_docs[1:cutoff]),
   K = r_tot-r_al 
 )
 print(params)
@@ -307,7 +289,7 @@ We begin with a sample of 100 documents
 n <- 100
 urndocs <- sample(ordered_docs[cutoff:N_tot], replace=F)
 s_docs <- urndocs[1:n]
-k <- cumsum(s_docs)[n]
+k <- sum(s_docs)
 plot(
   c(cumsum(ordered_docs[1:cutoff]),cumsum(s_docs)+r_al),
   xlim=c(1,N_tot), xlab=xlab, ylab=ylab,
@@ -413,7 +395,7 @@ Based on what we observed in this sample, it is not unlikely at all that we have
 
 \columnsbegin
 \column{0.5\textwidth}
-```{r}
+```{r fig.height=6}
 vec_K_tar <- vapply(
   cumsum(urndocs)+r_al, get_ktar, numeric(1), 
   r_al=r_al, recall_target=.95
@@ -431,8 +413,8 @@ abline(v=N_al+which(p<0.05)[1])
 \column{0.5\textwidth}
 The p score declines as we see more consecutive irrelevant documents, and as there are fewer and fewer documents left in the urn.
 
-```{r}
-plot(c(rep(NA,N_al),p), xlab="Documents screened")
+```{r fig.height=6}
+plot(c(rep(NA,N_al),p), xlab="Documents screened", ylab="p")
 abline(h=.05)
 abline(v=N_al+which(p<0.05)[1])
 ```
@@ -459,7 +441,7 @@ plot(
 )
 for (i in seq(1,6)) {
   lines(seq(20.5-i,20.5),rep(0.75+i*0.4,i+1))
-  i_k <- cumsum(tail(last_docs,i))[i]
+  i_k <- sum(tail(last_docs,i))
   text(
     20.5-i*0.5,0.75+i*0.4,
     paste0("n=",i,", k=",i_k), adj=c(0.5,-0.25)
@@ -473,7 +455,7 @@ cols <- ifelse(last_docs>0,"green","red")
 plot(rep(1,20), col = cols, pch = 19,ylim=c(0.5,4.5), axes=FALSE, xlab="",ylab="")
 for (i in seq(1,6)) {
   lines(seq(20.5-i,20.5),rep(0.75+i*0.4,i+1))
-  i_k <- cumsum(tail(last_docs,i))[i]
+  i_k <- sum(tail(last_docs,i))
   text(20.5-i*0.5,0.75+i*0.4,paste0("n=",i,", k=",i_k), adj=c(0.5,-0.25))
 }
 ```
@@ -578,7 +560,7 @@ Contact: \url{callaghan@mcc-berlin.net}, Twitter: \@MaxCallaghan5
 
 Code: \url{https://github.com/mcallaghan/rapid-screening}
 
-This presentation: \url{https://github.com/mcallaghan/rapid-screening/pres/rapid-review-esmar.Rmd}
+This presentation: \url{https://github.com/mcallaghan/rapid-screening/blob/master/pres/rapid-review-esmar.Rmd}
 
 
 ## References

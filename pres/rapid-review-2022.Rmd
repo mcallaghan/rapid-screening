@@ -1,0 +1,607 @@
+---
+author: Max Callaghan, Finn Müller-Hansen
+date: Wed 28 September 2022
+output: 
+    beamer_presentation:
+        latex_engine: pdflatex
+        includes:
+            in_header: header.tex
+            
+bibliography: ../mendeley.bib
+classoption: "aspectratio=169"
+
+---
+
+
+```{r setup, include=FALSE}
+set.seed(5)
+knitr::opts_chunk$set(cache = F)
+knitr::opts_chunk$set(global.par = TRUE)
+options(max.print = 35)
+xlab <- "Documents Screened" 
+ylab <- "Relevant documents identified"
+```
+##
+
+\maketitle
+
+## Introduction
+- Identifying studies for an evidence synthesis project can be very time-consuming
+- Machine learning (ML) can be trained using human decisions to predict the relevance of unseen documents
+- Active learning means iterations of
+    - Humans screen documents
+    - ML is trained using human decisions
+    - ML predicts relevance probability for all remaining documents
+    - Documents are ordered in descending order of predicted relevance
+- With active learning we can identify all relevant documents without having to view every single document.
+
+## Demonstrable work savings
+
+Numerous studies have used datasets from previous reviews to show that machine learning has the potential to save work in systematic review [@OMara-Eves2015; @Cohen2006; @Przybya2018]. 
+
+However, most of the work savings are just *potential* work savings predicated on *a priori* knowledge of how many relevant studies we are looking for.
+
+To achieve these savings, we need to know when to stop screening: and existing approaches to deciding this are insufficient [@Shemilt2014; @Howard2020; @Jonnalagadda2013]. We need to be confident that we don't miss studies, and we need to be able to communicate this confidence. 
+
+
+
+## Screening documents 
+
+We can set up a toy dataset with 2,000 documents ($N_{tot}$), of which 100 are relevant ($\rho_{tot}$)
+
+```{r sample}
+N_tot <- 2000 # total documents
+r_tot <- 100 # total relevant documents
+
+docs <- rep(0,N_tot)
+docs[1:r_tot] <- 1
+docs <- sample(docs, replace=F)
+docs
+sum(docs)
+
+```
+
+## Screening documents
+
+At any point during screening, we can calculate recall ($\tau$) by dividing the number of relevant documents we have seen ($\rho_{seen}$) by the total number of relevant documents
+
+\[ \tau = \frac{\rho_{seen}}{\rho_{tot}}\]
+
+We usually accept that we won't identify every last document and aim for a recall target ($\tau_{tar}$) like 95%
+
+
+## Screening documents
+
+If we screen these at random, we will see 95% recall after seeing ~95% of all documents
+
+\columnsbegin
+
+\column{0.5\textwidth}
+\scriptsize
+```{r randomPlotCode, eval=F, size="footnotesize"}
+par(pty="s")
+plot(
+  cumsum(docs), 
+  xlab="Documents Screened", 
+  ylab="Relevant documents identified",
+  xlim=c(0,N_tot),
+  ylim=c()
+)
+
+```
+```{r}
+tau_target=0.95
+tau <- cumsum(docs)/r_tot
+which(tau>tau_target)[1]/N_tot
+```
+
+
+\column{0.5\textwidth}
+```{r randomPlotOut, echo=F, size="footnotesize"}
+par(pty="s")
+plot(
+  cumsum(docs), 
+  xlab="Documents Screened", 
+  ylab="Relevant documents identified",
+  xlim=c(0,N_tot),
+  ylim=c()
+)
+abline(h=r_tot*.95)
+
+```
+
+\columnsend
+
+## Screening documents with machine learning
+
+\columnsbegin
+
+\column{0.5\textwidth}
+
+\small
+If machine learning means we are more likely to view a relevant document in each draw, we will achieve 95% recall much earlier
+\scriptsize
+```{r eval=F}
+weights = rep(1,N_tot)
+weights[which(docs==1)] <- seq(
+  10,2,length.out=r_tot
+)
+ordered_docs <- sample(
+  docs, prob=weights, replace=F
+)
+plot(cumsum(ordered_docs))
+abline(h=r_tot*.95)
+```
+```{r echo=F}
+weights = rep(1,N_tot)
+weights[which(docs==1)] <- seq(15,2,length.out=r_tot)
+ordered_docs <- sample(docs, prob=weights, replace=F)
+```
+
+
+```{r}
+tau <- cumsum(ordered_docs)/r_tot
+which(tau>=tau_target)[1]/N_tot
+```
+
+\column{0.5\textwidth}
+```{r echo=F}
+par(pty="s")
+plot(
+  cumsum(ordered_docs), 
+  xlab="Documents Screened", 
+  ylab="Relevant documents identified"
+)
+abline(h=r_tot*.95)
+```
+\columnsend
+
+## Screening documents with machine learning
+
+But if we descale the y axis, it's not so easy to tell when we have achieved 95% recall
+
+\columnsbegin
+\column{0.5\textwidth}
+\scriptsize
+```{r eval=F}
+r <- rle(ordered_docs) # calculate run lengths
+cutoff <- cumsum(r$lengths)[
+  r$lengths>40 & r$values==0
+][1] # stop after 30 consecutive 0s
+plot(
+  cumsum(ordered_docs[1:cutoff]),
+  xlim=c(1,N_tot),
+  xlab="Documents Screened", 
+  ylab="Relevant documents identified"
+)
+```
+\column{0.5\textwidth}
+```{r echo=F}
+par(pty="s")
+r <- rle(ordered_docs) # calculate run lengths
+cutoff <- cumsum(r$lengths)[r$lengths>40 & r$values==0][1]
+plot(
+  cumsum(ordered_docs[1:cutoff]),
+  xlim=c(1,N_tot),
+  xlab="Documents Screened", 
+  ylab="Relevant documents identified"
+)
+```
+
+\columnsend
+
+
+## Screening documents with machine learning
+
+With a bit of maths, we can calculate when it is safe to stop, if we want to achieve 95% recall (or any other target) with a given level of confidence
+
+\columnsbegin
+\column{0.5\textwidth}
+
+```{r echo=F}
+par(pty="s")
+cols = c(rep("black",cutoff),rep("red",N_tot-cutoff))
+plot(
+  cumsum(ordered_docs), 
+  xlab="Documents Screened", 
+  ylab="Relevant documents identified",
+  col=cols
+)
+abline(h=r_tot*.95)
+```
+
+\column{0.5\textwidth}
+
+In a nutshell, we use the distribution of relevant documents in those we previously screened, to infer likely distributions of relevant documents in documents not yet seen.
+
+\columnsend
+
+## A statistical stopping criterion
+
+Let's imagine we stop machine-learning prioritised screening at an arbitrary point and start drawing *at random* **without replacement** from the remaining documents.
+
+\columnsbegin
+\column{0.2\textwidth}
+![](images/Keats_urn.jpg)
+
+\column{0.8\textwidth}
+In probability theory, we use the analogy of an urn with green marbles (relevant documents / successes) and red marbles (irrelevant documents / failures). 
+
+Using the hypergeometric distribution. we can calculate the probability of drawing
+
+- $k$ relevant documents  
+- in a sample of $n$ documents
+- from an urn that had $N$ total documents
+- of which $K$ were relevant
+
+\columnsend
+
+## A statistical stopping criterion
+
+Let's return to a point that looked like a nice place to stop
+
+\vspace{1em}
+
+\tiny
+
+\columnsbegin
+\column{0.4\textwidth}
+```{r echo=F}
+par(pty="s")
+r_al <- sum(ordered_docs[1:cutoff])
+N_al <- cutoff
+K <- r_tot-r_al 
+N <- N_tot - N_al
+```
+
+```{r}
+plot(
+  cumsum(ordered_docs[1:cutoff]),
+  xlim=c(1,N_tot), xlab=xlab, ylab=ylab
+)
+```
+\column{0.6\textwidth}
+$N_{AL}$ is the number of documents screened after active learning, and $\rho_{AL}$ is the number of relevant documents seen after active learning. So $N$ ($K$) is the number of (relevant) documents remaining "in the urn".
+\tiny
+```{r}
+params <- list(
+  N_al = cutoff,
+  N = N_tot - N_al,
+  r_al = sum(ordered_docs[1:cutoff]),
+  K = r_tot-r_al 
+)
+print(params)
+```
+
+\columnsend
+
+
+
+## A statistical stopping criterion
+
+We begin with a sample of 100 documents
+
+\tiny
+
+\columnsbegin
+\column{0.5\textwidth}
+```{r}
+n <- 100
+urndocs <- sample(ordered_docs[cutoff:N_tot], replace=F)
+s_docs <- urndocs[1:n]
+k <- sum(s_docs)
+plot(
+  c(cumsum(ordered_docs[1:cutoff]),cumsum(s_docs)+r_al),
+  xlim=c(1,N_tot), xlab=xlab, ylab=ylab,
+  col=c(rep("black",cutoff),rep("red",n))
+)
+
+```
+\column{0.5\textwidth}
+$n$ is the number of documents in the sample (`r n`) and $k$ is the number of relevant documents drawn (`r k`)
+
+\medskip
+
+Using the hypergeometric distribution, we can calculate the probability of observing $k$ relevant documents in a sample of $n$ documents given an urn of $N$ documents of which $K$ are relevant.
+
+```{r}
+phyper(k, K, N, n)
+```
+However, although we do know $N$, we don't know how many documents are in the urn ($K$).
+
+\columnsend
+
+## A statistical stopping criterion - Hypothesis testing
+
+\tiny
+
+\columnsbegin
+\column{0.5\textwidth}
+```{r}
+plot(
+  c(cumsum(ordered_docs[1:cutoff]),cumsum(s_docs)+r_al),
+  xlim=c(1,N_tot), xlab=xlab, ylab=ylab,
+  col=c(rep("black",cutoff),rep("red",n))
+)
+
+```
+\column{0.5\textwidth}
+We form a null hypothesis that the target level of recall has not been achieved
+
+\begin{equation}
+H_0 : \tau < \tau_{tar}
+\end{equation}
+
+Accordingly, our alternative hypothesis is that recall is at least as large as our target:
+
+\begin{equation}
+H_1 : \tau \geq \tau_{tar}
+\end{equation}
+
+To operationalise this, we come up with a hypothetical value of $K$ which is the lowest value compatible with our null hypothesis
+
+\begin{equation}
+K_{tar} = \lfloor \frac{\rho_{seen}}{\tau_{tar}}-\rho_{AL}+1 \rfloor
+\end{equation}
+
+```{r}
+get_ktar <- function(r_al, r_seen, recall_target){
+  return(floor(r_seen/recall_target-r_al+1))
+}
+r_seen <- r_al+k
+K_tar <- get_ktar(r_al, r_seen, .95)
+```
+
+In other words, if there were `r K_tar` or more relevant documents in the urn when sampling began, the `r r_al` relevant we identified before sampling, and the `r k` we drew from the urn would not be enough to meet our target recall level
+
+\columnsend
+
+## A statistical stopping criterion - Hypothesis testing
+
+\tiny
+
+\columnsbegin
+\column{0.5\textwidth}
+```{r}
+plot(
+  c(cumsum(ordered_docs[1:cutoff]),cumsum(s_docs)+r_al),
+  xlim=c(1,N_tot), xlab=xlab, ylab=ylab,
+  col=c(rep("black",cutoff),rep("red",n))
+)
+
+```
+\column{0.5\textwidth}
+The cumulative distribution function gives us the probability of observing what we observed, if our null hypothesis were true
+
+\begin{equation}
+p = P(X \leq k) \text{, where } X \sim Hypergeometric(N,K_{tar},n)
+\label{eq:p-value}
+\end{equation}
+
+When $p < 1-\alpha$, we can stop screening, and report, for example, that we reject the null hypothesis that we achieve a recall below 95\% at the 5\% significance level
+
+```{r}
+p <- phyper(k, K_tar, N-K_tar, n)
+print(k)
+p
+```
+Based on what we observed in this sample, it is not unlikely at all that we have missed our target, so we keep screening
+
+\columnsend
+
+## A statistical stopping criterion - Hypothesis testing
+
+\tiny
+
+\columnsbegin
+\column{0.5\textwidth}
+```{r fig.height=6}
+vec_K_tar <- vapply(
+  cumsum(urndocs)+r_al, get_ktar, numeric(1), 
+  r_al=r_al, recall_target=.95
+)
+p <- phyper(cumsum(urndocs), vec_K_tar, N-vec_K_tar, seq(1,N))
+plot(
+  c(cumsum(ordered_docs[1:cutoff]),cumsum(urndocs)+r_al),
+  xlim=c(1,N_tot), xlab=xlab, ylab=ylab,
+  col=c(rep("black",cutoff),rep("red",N))
+)
+abline(h=r_tot*.95)
+abline(v=N_al+which(p<0.05)[1])
+
+```
+\column{0.5\textwidth}
+The p score declines as we see more consecutive irrelevant documents, and as there are fewer and fewer documents left in the urn.
+
+```{r fig.height=6}
+plot(c(rep(NA,N_al),p), xlab="Documents screened", ylab="p")
+abline(h=.05)
+abline(v=N_al+which(p<0.05)[1])
+```
+
+\columnsend
+
+## Ranked quasi sampling
+
+\footnotesize
+
+This is useful but not practical, because we don't know when to start a random sample, and doing so slows the whole process down.
+
+-> We treat previously screened documents *as if* they were drawn from a random sample, which is conservative as long as the machine learning hasn't completely backfired.
+
+\columnsbegin
+\column{0.5\textwidth}
+\tiny
+```{r eval=F}
+last_docs <- c(0,0,0,1,0,0,1,0,0,1,0,1,0,1,0,0,1,0,0,0)
+cols <- ifelse(last_docs>0,"green","red")
+plot(
+  rep(1,20), col = cols, pch = 19,
+  ylim=c(0.5,4.5), axes=FALSE, xlab="",ylab=""
+)
+for (i in seq(1,6)) {
+  lines(seq(20.5-i,20.5),rep(0.75+i*0.4,i+1))
+  i_k <- sum(tail(last_docs,i))
+  text(
+    20.5-i*0.5,0.75+i*0.4,
+    paste0("n=",i,", k=",i_k), adj=c(0.5,-0.25)
+  )
+}
+```
+\column{0.5\textwidth}
+```{r echo=F}
+last_docs <- c(0,0,0,1,0,0,1,0,0,1,0,1,0,1,0,0,1,0,0,0)
+cols <- ifelse(last_docs>0,"green","red")
+plot(rep(1,20), col = cols, pch = 19,ylim=c(0.5,4.5), axes=FALSE, xlab="",ylab="")
+for (i in seq(1,6)) {
+  lines(seq(20.5-i,20.5),rep(0.75+i*0.4,i+1))
+  i_k <- sum(tail(last_docs,i))
+  text(20.5-i*0.5,0.75+i*0.4,paste0("n=",i,", k=",i_k), adj=c(0.5,-0.25))
+}
+```
+\columnsend
+
+## Ranked quasi sampling
+
+\tiny
+
+\columnsbegin
+\column{0.5\textwidth}
+```{r}
+plot(
+  cumsum(ordered_docs[1:cutoff]),
+  xlim=c(1,N_tot), xlab=xlab, ylab=ylab
+)
+```
+We can then calculate a p value for quasi-samples consisting of the last 1 documents to all screened documents
+
+\column{0.5\textwidth}
+
+```{r fig.height=5}
+h0_p <- function(docs, N_tot, recall_target) {
+  r_seen <- sum(docs)
+  n_vec <- seq(1:length(docs))
+  k_vec <- cumsum(rev(docs))
+  r_al_vec <- r_seen - k_vec
+  k_hat_vec <- vapply(r_al_vec, get_ktar, numeric(1), 
+                    recall_target=recall_target, r_seen=r_seen)
+  red_ball_vec <- N_tot-(length(docs)-n_vec)-k_hat_vec
+  p_vec <- phyper(k_vec, k_hat_vec, red_ball_vec, n_vec) 
+  n <- which.min(p_vec)
+  return(list("min_p" = p_vec[n], "n" = n, "p_vec" = p_vec))
+}
+plot(h0_p(ordered_docs[1:cutoff],N_tot,.95)$p_vec,
+     xlab="Documents in quasi sample",ylab="p")
+```
+
+\columnsend
+
+## Ranked quasi sampling
+
+\tiny
+
+\columnsbegin
+\column{0.5\textwidth}
+
+We can calculate this after each document is screened and figure out when it is safe to stop
+
+```{r warning=F, fig.height=5, fig.width=5, eval=F}
+df <- data.frame(
+  i=seq(1,N_tot), r_seen=cumsum(ordered_docs), 
+  docs=ordered_docs, pmin=0
+)
+for (i in df$i) {
+  p <- h0_p(df$docs[1:i], N_tot, .95)
+  df$pmin[i] <- p$min_p
+}
+par(mfrow = c(2,1), mar = c(2, 2, 2, 2),pty="s")
+plot(df$r_seen)
+plot(df$pmin)
+```
+\column{0.5\textwidth}
+
+```{r warning=F, fig.height=6, echo=F}
+df <- data.frame(i=seq(1,N_tot), r_seen=cumsum(ordered_docs), docs=ordered_docs, pmin=0)
+for (i in df$i) {
+  p <- h0_p(df$docs[1:i], N_tot, .95)
+  df$pmin[i] <- p$min_p
+}
+par(mfrow = c(2,1), mar = c(2, 2, 2, 2), pty="s")
+plot(df$r_seen, ylab="Relevant documents identified")
+plot(df$pmin, ylab="p H0", xlab="Documents screened")
+```
+\columnsend
+
+
+## Evaluation
+
+We tested this on 20 systematic review datasets, simulating 100 machine learning assisted reviews of each.
+
+\columnsbegin
+\column{0.382\textwidth}
+![](../manuscript/2_figs_jointplot_nrs.pdf)
+\column{0.618\textwidth}
+Our criterion performed reliably. Although work savings were small, this is partly due to small datasets with few relevant documents. Because of the way the hypergeometric distribution works, the extra effort required to prove that it is safe to stop gets proportionally smaller.
+\columnsend
+
+## Applications and extensions
+
+\columnsbegin
+
+\column{0.33\textwidth}
+\only<1->{
+\begin{figure}
+\includegraphics[width=\linewidth]{images/doebbeling_ws.png}
+\end{figure}
+}
+
+\column{0.33\textwidth}
+\only<2->{
+\begin{figure}
+\includegraphics[width=\linewidth]{images/doebbeling_p.png}
+\end{figure}
+}
+
+
+\column{0.33\textwidth}
+
+\small
+
+\begin{itemize}
+  \item<1-> We have used the stopping criteria to generate massive savings (77\%) in real projects
+  \item<2-> If rejecting our $H_0$ was less labour intensive we could have saved around 82\%
+  \item<3-> Assuming documents are drawn at random makes our criterion over-conservative -> making more realistic assumptions (perhaps using the predictions from the models) might make it more precise.
+\end{itemize}
+
+\columnsend
+
+## Open questions
+
+\begin{itemize}
+  \item<1-> Are the x\% we miss a representative sample?
+  \item<2-> Can we use predictions to generate a precise estimate?
+  \item<3-> Are we there yet? Can we infer the relationship between \textbf{Dataset size}, \textbf{Machine learning effectiveness}, \textbf{prevalence of relevant documents}, and \textbf{work savings}, and use this to make predictions about potential work savings?.
+\end{itemize}
+
+## Conclusion
+
+We provide a reliable way to estimate if it is safe to stop screening if you want to achieve a certain recall target. All you need are the R function in this presentation, a vector of 1s and 0s representing human screening decisions, and the number of documents in a database
+
+\medskip
+
+\centering
+
+**Thanks!**
+
+Paper: Callaghan, M.W., Müller-Hansen, F.. Statistical Stopping Criteria for Automated Screening in Systematic Reviews. \textit{Systematic Reviews}. \textbf{9} 273 (2020). \url{https://doi.org/10.1186/s13643-020-01521-4}.
+
+Contact: \url{callaghan@mcc-berlin.net}, Twitter: \@MaxCallaghan5
+
+Code: \url{https://github.com/mcallaghan/rapid-screening}
+
+This presentation: \url{https://github.com/mcallaghan/rapid-screening/blob/master/pres/rapid-review-esmar.Rmd}
+
+
+## References
+
+\scriptsize
