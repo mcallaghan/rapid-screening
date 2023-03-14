@@ -25,7 +25,7 @@
 
 \title[Stopping Criteria]{Statistical stopping criteria for automated screening in systematic reviews}
 \date{20 October 2022}
-\author{Finn Müller-Hansen, Max Callaghan}
+\author{Max Callaghan, \underline{Finn Müller-Hansen}}
 \institute[MCC]{
 	\includegraphics[height=1cm,width=2cm]{images/MCC_Logo_RZ_rgb.jpg}
 }
@@ -50,23 +50,22 @@
 
 %%%%%%%%%%%%%%%%%%%%%%
 % RITL
-\begin{frame}{Researcher in the Loop process}
+\begin{frame}{ML-assissted document screening}
 
 \begin{columns}
 	\begin{column}{0.618\linewidth}
 		\begin{itemize}
-			\item<1-> A large literature \citep{omara-eves_using_2015} has developed ``human-in the loop'' machine learning applications which ``overcome the manual and time-consuming screening of large numbers of studies by prioritizing relevant studies via active learning''  \cite{van_de_schoot_open_2021}
-			\item<2-> Identifying 95\% of relevant documents if screening manually would mean screening 95\% of all documents
-			\item<3-> If we can use machine learning to prioritise documents likely to be relevant, we can achieve high levels of recall with low levels of effort.
-			\item<4-> BUT, given we do not know \textit{a priori} the true number of relevant documents, we need strategies to stop screening and bank the work savings
-			\item<5->Getting these wrong can mean missing our target
+			\item<1-> Growing number of ``researcher-in-the-loop'' machine learning applications for screening documents for systematic reviews \citep{omara-eves_using_2015, van_de_schoot_open_2021}.
+			\item<2-> By using machine learning to prioritise documents likely to be relevant, we can achieve high levels of recall without screening all documents.
+			\item<3-> BUT, given we do not know \textit{a priori} the true number of relevant documents, we need criteria when to stop screening.
+			\item<4->Stopping too early can lead to huge biases in reviews.
 		\end{itemize}
 	\end{column}
 	\begin{column}{0.382\linewidth}
 		\begin{figure}
-			\only<2-3>{\includegraphics[width=\linewidth]{images/idealised_stopping.pdf}}
-			\only<4>{\includegraphics[width=\linewidth]{images/potential_stopping.pdf}}
-			\only<5>{\includegraphics[width=\linewidth]{images/early_stopping.pdf}}
+			\only<2>{\includegraphics[width=\linewidth]{images/idealised_stopping.pdf}}
+			\only<3>{\includegraphics[width=\linewidth]{images/potential_stopping.pdf}}
+			\only<4>{\includegraphics[width=\linewidth]{images/early_stopping.pdf}}
 %			\only<2>{\includegraphics[width=\linewidth]{images/random.pdf}}
 %			\only<3>{\includegraphics[width=\linewidth]{images/ml_prio.pdf}}
 %			\only<4>{\includegraphics[width=\linewidth]{images/ml_prio.pdf}}
@@ -78,7 +77,7 @@
 
 %%%%%%%%%%%%%%%%%%%%%%
 % Urn
-\begin{frame}{A stopping criterion}
+\begin{frame}{A statistical stopping criterion}
 
 
 
@@ -93,10 +92,10 @@
 	\end{column}
 	\begin{column}{0.618\linewidth}
 		\begin{itemize}
-			\item<1-> Our stopping criterin works by treating documents as if they were white (not relevant) and red (relevant) marbles drawn from an urn without replacement.
-			\item<2-> The hypergeometric distribution tells us the probability of observing \textbf{k} red marbles in a sample of \textbf{n} marbles, given an urn with \textbf{N} marbles, of which \textbf{K} are relevant
-			\item<3-> We reformulate this to generate a null hypothesis $H_0$ that a given recall target has been \textbf{missed}. 
-			\item<4-> We calculate a p-score for our null hypothesis, and if this is low enough, we reject $H_0$ and stop screening.
+			\item<1-> Our stopping criterion works by treating documents as if they were white (not relevant) and red (relevant) marbles drawn from an urn without replacement.
+			\item<2-> The hypergeometric distribution describes the probability of observing \textbf{k} red marbles in a sample of \textbf{n} marbles, given an urn with \textbf{N} marbles, of which \textbf{K} are red.
+			\item<3-> We formulate a null hypothesis $H_0$ that a given recall target (e.g. 95\% of relevant documents) has been \textbf{missed}. 
+			\item<4-> We calculate a p-score for $H_0$ and stop screening if this falls below a selected threshold.
 		\end{itemize}
 	\end{column}
 
@@ -106,7 +105,7 @@
 
 \bigskip
 
-\only<5->{Note, ML-prioritisation means documents are not drawn at random, which makes our test conservative as long as ML works as well as or better than random chance.}
+\only<5->{Note: ML-prioritisation means documents are not drawn at random, which makes our test conservative.}
 
 \end{frame}
 
@@ -115,14 +114,14 @@
 % Results
 \begin{frame}{Results}
 
-We test our criteria against other commonly used criteria on 20 complete systematic review datasets
+We run simulations on 20 complete systematic review datasets to test our criterion.
 
 \begin{columns}
 	\begin{column}{0.618\linewidth}
 		\begin{itemize}
-			\item<1-> \textit{Potential} work savings (if we already knew when to stop) varied widely (higher for larger datasets - blue dots)
-			\item<2-> Existing stopping criteria can result in catastrophic errors
-			\item<4-> Our criteria generated work savings with reliably conservative performance wrt our recall target.
+			\item<1-> \textit{Theoretically achievable} work savings in the datasets varies widely (higher for larger datasets - blue dots)
+			\item<2-> Existing stopping criteria can result in very low recall (examples: 50 consecutive irrelevant articles, using baseline inclusion rate)
+			\item<4-> Our criterion generated work savings with reliably conservative performance wrt our recall target.
 		\end{itemize}
 	\end{column}
 	\begin{column}{0.382\linewidth}
@@ -152,15 +151,15 @@ We test our criteria against other commonly used criteria on 20 complete systema
 % Conclusion
 \begin{frame}{Conclusion}
 
-We provide a stopping criteria that works on any model, with any tool: \url{https://github.com/mcallaghan/rapid-screening/blob/master/analysis/hyper_criteriaR.md}.
+We provide a stopping criterion that works on any model and can be included in any tool: \url{https://github.com/mcallaghan/rapid-screening/blob/master/analysis/hyper_criteriaR.md}.
 
 \medskip
 
-Work savings in practice with large datasets are large!
+In practice, we see huge work savings for large datasets!
 
 \medskip
 
-Future work will identify how biased our urn is, in order to use a noncentral hypergeometric distribution, which should give a more precise, less conservative criterion.
+Future work: use noncentral hypergeometric distribution to generate a less conservative test and save more work.
 
 \begin{center}
 	\line(1,0){250}
@@ -171,7 +170,7 @@ Future work will identify how biased our urn is, in order to use a noncentral hy
 	
 	\medskip
 	
-	Contact: \url{mueller-hansen@mcc-berlin.net, callaghan@mcc-berlin.net}
+	Contact: \url{callaghan@mcc-berlin.net, mueller-hansen@mcc-berlin.net}
 	
 	Twitter: \url{https://twitter.com/MaxCallaghan5}
 	
@@ -214,7 +213,7 @@ Future work will identify how biased our urn is, in order to use a noncentral hy
 \small
 
 \begin{itemize}
-	\item<1-> We have used the stopping criteria to generate massive savings (77\%) in real projects
+	\item<1-> We have used the stopping criterion to generate massive savings (77\%) in real projects
 	\item<2-> If rejecting our $H_0$ was less labour intensive we could have saved around 82\%
 	\item<3-> Using a biased urn could help create a more precise criterion
 \end{itemize}
