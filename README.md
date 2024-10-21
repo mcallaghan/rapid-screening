@@ -4,4 +4,6 @@ This repository contains the code accompanying the paper [Statistical stopping c
 
 The code behind the stopping criteria has since been rationalised and better documented, and is available in package form for [R](https://mcallaghan.github.io/buscarR/) and [Python](https://buscarpy.readthedocs.io/en/latest/).
 
+An interactive web-based calculator for the stopping criteria is available [here](https://mcallaghan.github.io/buscar-app/).
+
 If you want to apply the stopping criteria in your own project. Take a look at the example in `analysis/minimal_example.ipynb`.
